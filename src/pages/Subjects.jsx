@@ -10,7 +10,7 @@ import { useNavigation } from "../context/NavigationContext";
 export default function Subjects() {
   const { subjectId, topicId, conceptId } = useParams();
   const navigate = useNavigate();
-  const { subjects, loading, error } = useContent();
+  const { subjects, topics, loading, error, getTopicsBySubject } = useContent();
   const { navigateWithState, goBack } = useNavigation();
 
   if (loading) {
@@ -121,23 +121,28 @@ export default function Subjects() {
         <p>Select a subject to start exploring topics.</p>
 
         <div className="subjects-grid">
-          {subjects.map((subject) => (
-            <div 
-              className="subject-card" 
-              key={subject.id}
-              onClick={() => handleSubjectClick(subject)}
-            >
-              <div className="subject-icon">{subject.icon}</div>
-              <h3>{subject.name}</h3>
-              <p>{subject.description}</p>
-              <div className="subject-meta">
-                <span>{subject.topicCount} topics</span>
-                <span className={`difficulty ${subject.difficulty}`}>
-                  {subject.difficulty}
-                </span>
+          {subjects.map((subject) => {
+            const subjectTopics = getTopicsBySubject(subject.id);
+            const topicCount = subjectTopics.length;
+            
+            return (
+              <div 
+                className="subject-card" 
+                key={subject.id}
+                onClick={() => handleSubjectClick(subject)}
+              >
+                <div className="subject-icon">{subject.icon}</div>
+                <h3>{subject.name}</h3>
+                <p>{subject.description}</p>
+                <div className="subject-meta">
+                  <span>{topicCount} topics</span>
+                  <span className={`difficulty ${subject.difficulty}`}>
+                    {subject.difficulty}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <style jsx>{`

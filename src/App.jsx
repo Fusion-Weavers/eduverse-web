@@ -6,7 +6,9 @@ import Subjects from "./pages/Subjects";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
+import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
 import { ContentProvider } from "./context/ContentContext";
@@ -75,6 +77,12 @@ export default function App() {
                         <ProtectedRoute>
                           <Profile />
                         </ProtectedRoute>
+                      } />
+
+                      <Route path="/admin" element={
+                        <AdminRoute>
+                          <AdminDashboard />
+                        </AdminRoute>
                       } />
                     </Routes>
                   </SearchProvider>

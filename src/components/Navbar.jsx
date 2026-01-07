@@ -4,7 +4,7 @@ import { useState } from "react";
 import LanguageSelector from "./LanguageSelector";
 
 export default function Navbar() {
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -22,6 +22,11 @@ export default function Navbar() {
         <Link to="/subjects" onClick={() => setOpen(false)}>Subjects</Link>
         <Link to="/favorites" onClick={() => setOpen(false)}>Favorites</Link>
         <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
+        {isAdmin && (
+          <Link to="/admin" onClick={() => setOpen(false)} className="admin-link">
+            Admin
+          </Link>
+        )}
         <LanguageSelector variant="compact" showLabel={false} />
         <button onClick={handleLogout}>Logout</button>
       </div>

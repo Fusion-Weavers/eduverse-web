@@ -469,9 +469,11 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                   <span className="read-time">
                     {selectedConcept.estimatedReadTime} min read
                   </span>
-                  <span className="last-updated">
-                    Updated {selectedConcept.lastUpdated.toLocaleDateString()}
-                  </span>
+                  {selectedConcept.updatedAt && (
+                    <span className="last-updated">
+                      Updated {new Date(selectedConcept.updatedAt.seconds * 1000).toLocaleDateString()}
+                    </span>
+                  )}
                   <span className="current-language">
                     Language: {getLanguageDisplayName(currentLanguage)}
                   </span>

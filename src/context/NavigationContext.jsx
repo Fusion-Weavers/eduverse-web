@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const NavigationContext = createContext();
@@ -59,7 +59,7 @@ export const NavigationProvider = ({ children }) => {
   }, [location.pathname]);
 
   // Save scroll position before navigation
-  const saveScrollPosition = (path, position) => {
+  const saveScrollPosition = useCallback((path, position) => {
     setNavigationState(prev => ({
       ...prev,
       scrollPositions: {
@@ -67,15 +67,15 @@ export const NavigationProvider = ({ children }) => {
         [path]: position
       }
     }));
-  };
+  }, []);
 
   // Restore scroll position for a path
-  const getScrollPosition = (path) => {
+  const getScrollPosition = useCallback((path) => {
     return navigationState.scrollPositions[path] || 0;
-  };
+  }, [navigationState.scrollPositions]);
 
   // Save filter state for a specific page/component
-  const saveFilterState = (key, filterState) => {
+  const saveFilterState = useCallback((key, filterState) => {
     setNavigationState(prev => ({
       ...prev,
       filterStates: {
@@ -83,15 +83,15 @@ export const NavigationProvider = ({ children }) => {
         [key]: filterState
       }
     }));
-  };
+  }, []);
 
   // Get filter state for a specific page/component
-  const getFilterState = (key) => {
+  const getFilterState = useCallback((key) => {
     return navigationState.filterStates[key] || {};
-  };
+  }, [navigationState.filterStates]);
 
   // Save sort state for a specific page/component
-  const saveSortState = (key, sortState) => {
+  const saveSortState = useCallback((key, sortState) => {
     setNavigationState(prev => ({
       ...prev,
       sortStates: {
@@ -99,15 +99,15 @@ export const NavigationProvider = ({ children }) => {
         [key]: sortState
       }
     }));
-  };
+  }, []);
 
   // Get sort state for a specific page/component
-  const getSortState = (key) => {
+  const getSortState = useCallback((key) => {
     return navigationState.sortStates[key] || {};
-  };
+  }, [navigationState.sortStates]);
 
   // Add breadcrumb
-  const addBreadcrumb = (breadcrumb) => {
+  const addBreadcrumb = useCallback((breadcrumb) => {
     setNavigationState(prev => {
       const newBreadcrumbs = [...prev.breadcrumbs];
       
@@ -133,18 +133,18 @@ export const NavigationProvider = ({ children }) => {
         breadcrumbs: newBreadcrumbs
       };
     });
-  };
+  }, []);
 
   // Clear breadcrumbs
-  const clearBreadcrumbs = () => {
+  const clearBreadcrumbs = useCallback(() => {
     setNavigationState(prev => ({
       ...prev,
       breadcrumbs: []
     }));
-  };
+  }, []);
 
   // Navigate with state preservation
-  const navigateWithState = (path, options = {}) => {
+  const navigateWithState = useCallback((path, options = {}) => {
     // Save current scroll position
     const currentScrollY = window.scrollY;
     saveScrollPosition(location.pathname, currentScrollY);
@@ -168,15 +168,15 @@ export const NavigationProvider = ({ children }) => {
         window.scrollTo(0, savedPosition);
       }, 100);
     }
-  };
+  }, [location.pathname, saveScrollPosition, addBreadcrumb, navigate, getScrollPosition]);
 
   // Get navigation history for back button functionality
-  const getNavigationHistory = () => {
+  const getNavigationHistory = useCallback(() => {
     return navigationState.breadcrumbs.slice().reverse();
-  };
+  }, [navigationState.breadcrumbs]);
 
   // Go back to previous page with state restoration
-  const goBack = () => {
+  const goBack = useCallback(() => {
     const history = getNavigationHistory();
     if (history.length > 0) {
       const previous = history[0];
@@ -190,10 +190,10 @@ export const NavigationProvider = ({ children }) => {
     } else {
       navigate(-1);
     }
-  };
+  }, [getNavigationHistory, navigateWithState, navigate]);
 
   // Clear all navigation state (useful for logout)
-  const clearNavigationState = () => {
+  const clearNavigationState = useCallback(() => {
     const initialState = {
       lastVisited: {
         path: '/',
@@ -207,9 +207,9 @@ export const NavigationProvider = ({ children }) => {
     
     setNavigationState(initialState);
     localStorage.removeItem(NAVIGATION_STORAGE_KEY);
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     navigationState,
     
     // Scroll position management
@@ -233,7 +233,21 @@ export const NavigationProvider = ({ children }) => {
     
     // State management
     clearNavigationState
-  };
+  }), [
+    navigationState,
+    saveScrollPosition,
+    getScrollPosition,
+    saveFilterState,
+    getFilterState,
+    saveSortState,
+    getSortState,
+    addBreadcrumb,
+    clearBreadcrumbs,
+    getNavigationHistory,
+    navigateWithState,
+    goBack,
+    clearNavigationState
+  ]);
 
   return (
     <NavigationContext.Provider value={value}>

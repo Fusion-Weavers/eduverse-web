@@ -12,7 +12,7 @@ import ErrorState from "./ErrorState";
 
 export default function TopicList({ subjectId, onTopicSelect }) {
   const { user } = useAuth();
-  const { getTopicsBySubject, subjects, trackUserActivity, loading, error } = useContent();
+  const { getTopicsBySubject, getConceptsByTopic, subjects, trackUserActivity, loading, error } = useContent();
   const { isTopicFavorited } = useFavorites();
   const { saveSortState, getSortState, navigateWithState } = useNavigation();
   

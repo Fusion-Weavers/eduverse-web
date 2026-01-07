@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const LanguageContext = createContext();
@@ -46,7 +46,7 @@ const TranslationUtils = {
         const cacheTime = new Date(parsed.timestamp);
         const now = new Date();
         const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24);
-        
+
         if (daysDiff < 7) {
           return parsed.data;
         } else {
@@ -82,7 +82,7 @@ const TranslationUtils = {
     try {
       const keys = Object.keys(localStorage);
       const translationKeys = keys.filter(key => key.startsWith('translation_'));
-      
+
       // Sort by timestamp and remove oldest entries
       const cacheEntries = translationKeys.map(key => {
         try {
@@ -94,7 +94,7 @@ const TranslationUtils = {
       });
 
       cacheEntries.sort((a, b) => a.timestamp - b.timestamp);
-      
+
       // Remove oldest 30% of translation entries
       const toRemove = Math.ceil(cacheEntries.length * 0.3);
       for (let i = 0; i < toRemove; i++) {
@@ -125,11 +125,11 @@ const TranslationUtils = {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
       const languageInfo = SUPPORTED_LANGUAGES.find(lang => lang.code === targetLanguage);
       const targetLanguageName = languageInfo?.name || targetLanguage;
-      
+
       const prompt = `You are an expert educational content translator specializing in STEM subjects. 
       
 Translate the following educational content to ${targetLanguageName}. 
@@ -151,10 +151,22 @@ Respond with ONLY the translated JSON object, no additional text or explanation.
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      const translatedText = response.text();
-      
-      // Parse the JSON response
+      let translatedText = response.text();
+
+      // Parse the JSON response - handle markdown code blocks
       try {
+        // Remove markdown code block wrappers if present
+        translatedText = translatedText.trim();
+        if (translatedText.startsWith('```json')) {
+          translatedText = translatedText.slice(7);
+        } else if (translatedText.startsWith('```')) {
+          translatedText = translatedText.slice(3);
+        }
+        if (translatedText.endsWith('```')) {
+          translatedText = translatedText.slice(0, -3);
+        }
+        translatedText = translatedText.trim();
+
         const translatedContent = JSON.parse(translatedText);
         return {
           ...translatedContent,
@@ -163,6 +175,7 @@ Respond with ONLY the translated JSON object, no additional text or explanation.
         };
       } catch (parseError) {
         console.error('Failed to parse Gemini translation response:', parseError);
+        console.error('Raw response:', translatedText);
         throw new Error('Invalid translation response format');
       }
     } catch (error) {
@@ -194,11 +207,11 @@ export const LanguageProvider = ({ children }) => {
     try {
       const savedLanguage = localStorage.getItem('preferred_language');
       const savedFallback = localStorage.getItem('fallback_language');
-      
+
       if (savedLanguage && TranslationUtils.isLanguageSupported(savedLanguage)) {
         setCurrentLanguage(savedLanguage);
       }
-      
+
       if (savedFallback && TranslationUtils.isLanguageSupported(savedFallback)) {
         setFallbackLanguage(savedFallback);
       }
@@ -220,7 +233,7 @@ export const LanguageProvider = ({ children }) => {
   };
 
   // Change current language
-  const changeLanguage = (languageCode) => {
+  const changeLanguage = useCallback((languageCode) => {
     if (TranslationUtils.isLanguageSupported(languageCode)) {
       setCurrentLanguage(languageCode);
       saveLanguagePreference(languageCode, fallbackLanguage);
@@ -228,18 +241,18 @@ export const LanguageProvider = ({ children }) => {
     } else {
       console.error(`Unsupported language: ${languageCode}`);
     }
-  };
+  }, [fallbackLanguage]);
 
   // Change fallback language
-  const changeFallbackLanguage = (languageCode) => {
+  const changeFallbackLanguage = useCallback((languageCode) => {
     if (TranslationUtils.isLanguageSupported(languageCode)) {
       setFallbackLanguage(languageCode);
       saveLanguagePreference(currentLanguage, languageCode);
     }
-  };
+  }, [currentLanguage]);
 
   // Get localized content for a concept/topic
-  const getLocalizedContent = async (content, contentId, context = {}) => {
+  const getLocalizedContent = useCallback(async (content, contentId, context = {}) => {
     // If content already exists in current language, return it
     if (content[currentLanguage]) {
       return {
@@ -253,7 +266,7 @@ export const LanguageProvider = ({ children }) => {
     if (content[fallbackLanguage] && currentLanguage !== fallbackLanguage) {
       const sourceContent = content[fallbackLanguage];
       const contentHash = TranslationUtils.generateContentHash(sourceContent);
-      
+
       // Check cache first
       const cached = TranslationUtils.getCachedTranslation(contentId, currentLanguage, contentHash);
       if (cached) {
@@ -269,16 +282,16 @@ export const LanguageProvider = ({ children }) => {
         try {
           setIsTranslating(true);
           setTranslationError(null);
-          
+
           const translated = await TranslationUtils.translateWithGemini(
-            sourceContent, 
-            currentLanguage, 
+            sourceContent,
+            currentLanguage,
             context
           );
-          
+
           // Cache the translation
           TranslationUtils.saveTranslationToCache(contentId, currentLanguage, contentHash, translated);
-          
+
           return {
             ...translated,
             language: currentLanguage,
@@ -318,34 +331,43 @@ export const LanguageProvider = ({ children }) => {
 
     // No content available at all
     throw new Error('No content available in any language');
-  };
+  }, [currentLanguage, fallbackLanguage, isTranslating]);
 
   // Clear all translation cache
-  const clearTranslationCache = () => {
+  const clearTranslationCache = useCallback(() => {
     TranslationUtils.clearOldTranslationCache();
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     // Current state
     currentLanguage,
     fallbackLanguage,
     supportedLanguages: SUPPORTED_LANGUAGES,
     isTranslating,
     translationError,
-    
+
     // Actions
     changeLanguage,
     changeFallbackLanguage,
     getLocalizedContent,
     clearTranslationCache,
-    
+
     // Utilities
     getLanguageDisplayName: TranslationUtils.getLanguageDisplayName,
     isLanguageSupported: TranslationUtils.isLanguageSupported,
-    
+
     // API availability
     isGeminiAvailable: !!genAI
-  };
+  }), [
+    currentLanguage,
+    fallbackLanguage,
+    isTranslating,
+    translationError,
+    changeLanguage,
+    changeFallbackLanguage,
+    getLocalizedContent,
+    clearTranslationCache
+  ]);
 
   return (
     <LanguageContext.Provider value={value}>

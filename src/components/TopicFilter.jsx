@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '../context/NavigationContext';
 
 export default function TopicFilter({ 
@@ -8,6 +8,12 @@ export default function TopicFilter({
 }) {
   const { saveFilterState, getFilterState } = useNavigation();
   const filterKey = `topic-filter-${subjectId}`;
+  const onFilterChangeRef = useRef(onFilterChange);
+  
+  // Update ref when callback changes
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  }, [onFilterChange]);
   
   // Initialize filters from navigation state or props
   const [filters, setFilters] = useState(() => {
@@ -22,10 +28,10 @@ export default function TopicFilter({
   // Save filter state whenever filters change
   useEffect(() => {
     saveFilterState(filterKey, filters);
-    if (onFilterChange) {
-      onFilterChange(filters);
+    if (onFilterChangeRef.current) {
+      onFilterChangeRef.current(filters);
     }
-  }, [filters, filterKey, saveFilterState, onFilterChange]);
+  }, [filters, filterKey, saveFilterState]);
 
   const handleDifficultyChange = (difficulty) => {
     setFilters(prev => ({

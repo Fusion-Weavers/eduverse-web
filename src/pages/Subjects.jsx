@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { useContent } from "../context/ContentContext";
 import { useNavigation } from "../context/NavigationContext";
+import { getSubjectIcon } from "../utils/iconMap";
 
 export default function Subjects() {
   const { subjectId, topicId, conceptId } = useParams();
@@ -47,7 +48,7 @@ export default function Subjects() {
       <ErrorBoundary>
         <Navbar />
         <div className="page">
-          <ConceptView 
+          <ConceptView
             topicId={topicId}
             conceptId={conceptId}
             onBack={goBack}
@@ -60,7 +61,8 @@ export default function Subjects() {
   // Handle topic list view
   if (subjectId) {
     const subject = subjects.find(s => s.id === subjectId);
-    
+    const SubjectIcon = getSubjectIcon(subject?.icon);
+
     if (!subject) {
       return (
         <ErrorBoundary>
@@ -91,7 +93,9 @@ export default function Subjects() {
             </button>
             <div className="subject-info">
               <div className="subject-title">
-                <span className="subject-icon">{subject.icon}</span>
+                <span className="subject-icon" aria-hidden="true">
+                  <SubjectIcon />
+                </span>
                 <h2>{subject.name}</h2>
               </div>
               <p>{subject.description}</p>
@@ -124,14 +128,17 @@ export default function Subjects() {
           {subjects.map((subject) => {
             const subjectTopics = getTopicsBySubject(subject.id);
             const topicCount = subjectTopics.length;
-            
+            const SubjectIcon = getSubjectIcon(subject.icon);
+
             return (
-              <div 
-                className="subject-card" 
+              <div
+                className="subject-card"
                 key={subject.id}
                 onClick={() => handleSubjectClick(subject)}
               >
-                <div className="subject-icon">{subject.icon}</div>
+                <div className="subject-icon" aria-hidden="true">
+                  <SubjectIcon />
+                </div>
                 <h3>{subject.name}</h3>
                 <p>{subject.description}</p>
                 <div className="subject-meta">

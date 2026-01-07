@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
-import { useSearch } from "../context/SearchContext";
 import { useNavigate } from "react-router-dom";
+import { IoSearchOutline, IoHourglassOutline, IoBulbOutline, IoTimeOutline } from "react-icons/io5";
+import { useSearch } from "../context/SearchContext";
 
 export default function SearchBar({ placeholder = "Search subjects, topics, and concepts...", showSuggestions = true }) {
   const {
@@ -13,7 +14,7 @@ export default function SearchBar({ placeholder = "Search subjects, topics, and 
     setScope,
     getPopularSearches
   } = useSearch();
-  
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const searchInputRef = useRef(null);
@@ -58,11 +59,11 @@ export default function SearchBar({ placeholder = "Search subjects, topics, and 
     if (!showDropdown) return;
 
     const suggestionsList = suggestions.length > 0 ? suggestions : getPopularSearches();
-    
+
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setFocusedIndex(prev => 
+        setFocusedIndex(prev =>
           prev < suggestionsList.length - 1 ? prev + 1 : prev
         );
         break;
@@ -122,7 +123,7 @@ export default function SearchBar({ placeholder = "Search subjects, topics, and 
             className="search-input"
             autoComplete="off"
           />
-          
+
           <select
             value={searchScope}
             onChange={handleScopeChange}
@@ -138,14 +139,14 @@ export default function SearchBar({ placeholder = "Search subjects, topics, and 
             <option value="biology">Biology</option>
             <option value="engineering">Engineering</option>
           </select>
-          
+
           <button
             type="submit"
             className="search-button"
             disabled={isSearching || !searchQuery.trim()}
             title="Search"
           >
-            {isSearching ? "⏳" : "🔍"}
+            {isSearching ? <IoHourglassOutline aria-hidden="true" /> : <IoSearchOutline aria-hidden="true" />}
           </button>
         </div>
 
@@ -163,7 +164,11 @@ export default function SearchBar({ placeholder = "Search subjects, topics, and 
                 onMouseEnter={() => setFocusedIndex(index)}
               >
                 <span className="suggestion-icon">
-                  {suggestions.length > 0 ? "💡" : "🕒"}
+                  {suggestions.length > 0 ? (
+                    <IoBulbOutline aria-hidden="true" />
+                  ) : (
+                    <IoTimeOutline aria-hidden="true" />
+                  )}
                 </span>
                 <span className="suggestion-text">{suggestion}</span>
               </div>

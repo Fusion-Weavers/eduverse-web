@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { IoLibraryOutline, IoBookOutline, IoDocumentTextOutline, IoSearchOutline } from "react-icons/io5";
 import { useSearch } from "../context/SearchContext";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -23,10 +24,13 @@ export default function SearchResults({ showHeader = true }) {
   // Get result type icon
   const getResultIcon = (type) => {
     switch (type) {
-      case "subject": return "📚";
-      case "topic": return "📖";
-      case "concept": return "📄";
-      default: return "📄";
+      case "subject":
+        return <IoLibraryOutline aria-hidden="true" />;
+      case "topic":
+        return <IoBookOutline aria-hidden="true" />;
+      case "concept":
+      default:
+        return <IoDocumentTextOutline aria-hidden="true" />;
     }
   };
 
@@ -36,9 +40,9 @@ export default function SearchResults({ showHeader = true }) {
       case "subject":
         return `/subjects/${result.id}`;
       case "topic":
-        return `/topics/${result.id}`;
+        return `/subjects/${result.subjectId}/${result.id}`;
       case "concept":
-        return `/concepts/${result.id}`;
+        return `/subjects/${result.subjectId || 'unknown'}/${result.topicId || 'unknown'}/${result.id}`;
       default:
         return "#";
     }
@@ -47,11 +51,11 @@ export default function SearchResults({ showHeader = true }) {
   // Highlight search terms in text
   const highlightSearchTerms = (text, query) => {
     if (!query || !text) return text;
-    
+
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
+
+    return parts.map((part, index) =>
       regex.test(part) ? (
         <mark key={index} className="search-highlight">{part}</mark>
       ) : part
@@ -66,7 +70,7 @@ export default function SearchResults({ showHeader = true }) {
             <h2>Searching...</h2>
           </div>
         )}
-        <LoadingSpinner 
+        <LoadingSpinner
           message={`Searching ${getScopeDisplayName(searchScope).toLowerCase()}...`}
           size="medium"
           color="primary"
@@ -115,7 +119,9 @@ export default function SearchResults({ showHeader = true }) {
 
       {searchResults.length === 0 ? (
         <div className="no-results">
-          <div className="no-results-icon">🔍</div>
+          <div className="no-results-icon" aria-hidden="true">
+            <IoSearchOutline />
+          </div>
           <h3>No results found</h3>
           <p>
             No {getScopeDisplayName(searchScope).toLowerCase()} found for "{searchQuery}".
@@ -157,24 +163,32 @@ export default function SearchResults({ showHeader = true }) {
                   </span>
                 )}
               </div>
-              
+
               <h3 className="result-title">
-                {highlightSearchTerms(result.title, searchQuery)}
+                {highlightSearchTerms(
+                  result.type === 'concept' ? result.title : result.name, 
+                  searchQuery
+                )}
               </h3>
-              
+
               <p className="result-description">
-                {highlightSearchTerms(result.description, searchQuery)}
+                {highlightSearchTerms(
+                  result.type === 'concept' 
+                    ? (result.content?.en?.summary || result.content?.en?.body?.substring(0, 150) + '...' || 'No description available')
+                    : result.description, 
+                  searchQuery
+                )}
               </p>
-              
+
               <div className="result-breadcrumb">
                 {result.subjectName && (
                   <span className="breadcrumb-item">
-                    📚 {result.subjectName}
+                    <IoLibraryOutline aria-hidden="true" /> {result.subjectName}
                   </span>
                 )}
                 {result.topicName && (
                   <span className="breadcrumb-item">
-                    📖 {result.topicName}
+                    <IoBookOutline aria-hidden="true" /> {result.topicName}
                   </span>
                 )}
               </div>

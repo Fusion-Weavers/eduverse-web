@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { batchService } from "../../services/firestoreService";
 import LoadingSpinner from "../LoadingSpinner";
+import {
+  IoBookOutline,
+  IoDocumentTextOutline,
+  IoGlassesOutline,
+  IoLeafOutline,
+  IoLibraryOutline
+} from "react-icons/io5";
+import { getSubjectIcon } from "../../utils/iconMap";
 
 export default function DataSeeder() {
   const [loading, setLoading] = useState(false);
@@ -14,7 +22,7 @@ export default function DataSeeder() {
         id: "physics",
         name: "Physics",
         description: "Study of matter, energy, and their interactions in the universe",
-        icon: "⚛️",
+        icon: "physics",
         difficulty: "intermediate",
         languages: ["en"]
       },
@@ -22,7 +30,7 @@ export default function DataSeeder() {
         id: "chemistry",
         name: "Chemistry",
         description: "Science of atoms, molecules, and chemical reactions",
-        icon: "🧪",
+        icon: "chemistry",
         difficulty: "intermediate",
         languages: ["en"]
       },
@@ -30,7 +38,7 @@ export default function DataSeeder() {
         id: "biology",
         name: "Biology",
         description: "Study of living organisms and life processes",
-        icon: "🧬",
+        icon: "biology",
         difficulty: "beginner",
         languages: ["en"]
       },
@@ -38,7 +46,7 @@ export default function DataSeeder() {
         id: "engineering",
         name: "Engineering",
         description: "Application of science and mathematics to solve real-world problems",
-        icon: "⚙️",
+        icon: "engineering",
         difficulty: "advanced",
         languages: ["en"]
       }
@@ -5074,17 +5082,26 @@ export default function DataSeeder() {
         <h3>What will be seeded:</h3>
         <div className="seed-stats">
           <div className="stat-card">
-            <h4>📚 Subjects</h4>
+            <h4>
+              <IoLibraryOutline aria-hidden="true" /> Subjects
+            </h4>
             <p>{seedData.subjects.length} subjects</p>
             <ul>
-              {seedData.subjects.map(subject => (
-                <li key={subject.name}>{subject.icon} {subject.name}</li>
-              ))}
+              {seedData.subjects.map(subject => {
+                const SubjectIcon = getSubjectIcon(subject.icon);
+                return (
+                  <li key={subject.name}>
+                    <SubjectIcon aria-hidden="true" /> {subject.name}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
           <div className="stat-card">
-            <h4>📖 Topics</h4>
+            <h4>
+              <IoBookOutline aria-hidden="true" /> Topics
+            </h4>
             <p>{seedData.topics.length} topics</p>
             <ul>
               {seedData.topics.slice(0, 6).map(topic => (
@@ -5095,13 +5112,15 @@ export default function DataSeeder() {
           </div>
 
           <div className="stat-card">
-            <h4>📝 Concepts</h4>
+            <h4>
+              <IoDocumentTextOutline aria-hidden="true" /> Concepts
+            </h4>
             <p>{seedData.concepts.length} concepts</p>
             <p>{seedData.concepts.filter(c => c.arEnabled).length} with AR enabled</p>
             <ul>
               {seedData.concepts.slice(0, 4).map(concept => (
                 <li key={concept.title}>
-                  {concept.title} {concept.arEnabled && "🥽"}
+                  {concept.title} {concept.arEnabled && <IoGlassesOutline aria-hidden="true" />}
                 </li>
               ))}
               {seedData.concepts.length > 4 && <li>...and {seedData.concepts.length - 4} more</li>}
@@ -5116,7 +5135,11 @@ export default function DataSeeder() {
           onClick={handleSeedData}
           disabled={loading}
         >
-          {loading ? <LoadingSpinner size="small" /> : "🌱 Seed Database"}
+          {loading ? <LoadingSpinner size="small" /> : (
+            <>
+              <IoLeafOutline aria-hidden="true" /> Seed Database
+            </>
+          )}
         </button>
 
         <button

@@ -1,5 +1,19 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  IoArrowBackOutline,
+  IoAttachOutline,
+  IoBookOutline,
+  IoDocumentTextOutline,
+  IoGlassesOutline,
+  IoGlobeOutline,
+  IoInformationCircleOutline,
+  IoRefreshOutline,
+  IoSearchOutline,
+  IoSparklesOutline,
+  IoStar,
+  IoWarningOutline
+} from "react-icons/io5";
 import { useContent } from "../context/ContentContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useFavorites } from "../context/FavoritesContext";
@@ -14,15 +28,15 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getConceptsByTopic, topics, subjects, trackUserActivity, loading, error } = useContent();
-  const { 
-    currentLanguage, 
-    getLocalizedContent, 
-    isTranslating, 
-    getLanguageDisplayName 
+  const {
+    currentLanguage,
+    getLocalizedContent,
+    isTranslating,
+    getLanguageDisplayName
   } = useLanguage();
   const { isConceptFavorited } = useFavorites();
   const { navigateWithState } = useNavigation();
-  
+
   const [localizedContentCache, setLocalizedContentCache] = useState(new Map());
   const [localizedContent, setLocalizedContent] = useState(null);
   const [contentLoading, setContentLoading] = useState(false);
@@ -35,14 +49,14 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   // Helper function to get content in selected language with fallback
   const getConceptLocalizedContent = async (concept) => {
     if (!concept || !concept.content) return null;
-    
+
     const cacheKey = `${concept.id}_${currentLanguage}`;
-    
+
     // Check cache first
     if (localizedContentCache.has(cacheKey)) {
       return localizedContentCache.get(cacheKey);
     }
-    
+
     try {
       // Use the LanguageContext's getLocalizedContent method
       const context = {
@@ -50,13 +64,13 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
         topic: topic?.name,
         difficulty: concept.difficulty
       };
-      
+
       const localizedContent = await getLocalizedContent(
-        concept.content, 
-        concept.id, 
+        concept.content,
+        concept.id,
         context
       );
-      
+
       const result = {
         content: localizedContent,
         language: localizedContent.language,
@@ -64,14 +78,14 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
         fallbackReason: localizedContent.fallbackReason,
         isTranslated: localizedContent.isTranslated || false
       };
-      
+
       // Cache the result
       setLocalizedContentCache(prev => new Map(prev.set(cacheKey, result)));
-      
+
       return result;
     } catch (error) {
       console.error('Error getting localized content:', error);
-      
+
       // Fallback to English if available
       if (concept.content.en) {
         return {
@@ -82,7 +96,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           isTranslated: false
         };
       }
-      
+
       return null;
     }
   };
@@ -90,14 +104,14 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   // Helper function to render rich content with proper formatting
   const renderRichContent = (text) => {
     if (!text) return null;
-    
+
     // Split text into paragraphs and render with proper spacing
     const paragraphs = text.split('\n\n').filter(p => p.trim());
-    
+
     return paragraphs.map((paragraph, index) => {
       // Check for special formatting
       const trimmedParagraph = paragraph.trim();
-      
+
       // Handle code blocks (```code```)
       if (trimmedParagraph.startsWith('```') && trimmedParagraph.endsWith('```')) {
         const code = trimmedParagraph.slice(3, -3).trim();
@@ -107,19 +121,19 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           </div>
         );
       }
-      
+
       // Handle inline code (`code`)
       let formattedText = trimmedParagraph.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-      
+
       // Handle bold text (**text**)
       formattedText = formattedText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      
+
       // Handle italic text (*text*)
       formattedText = formattedText.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-      
+
       // Handle mathematical expressions (LaTeX-style)
       formattedText = formattedText.replace(/\$([^$]+)\$/g, '<span class="math-expression">$1</span>');
-      
+
       // Handle bullet points
       if (trimmedParagraph.startsWith('• ') || trimmedParagraph.startsWith('- ')) {
         return (
@@ -128,7 +142,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           </ul>
         );
       }
-      
+
       // Handle numbered lists
       if (/^\d+\.\s/.test(trimmedParagraph)) {
         return (
@@ -137,7 +151,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           </ol>
         );
       }
-      
+
       // Handle headers (## Header)
       if (trimmedParagraph.startsWith('## ')) {
         return (
@@ -146,7 +160,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           </h4>
         );
       }
-      
+
       // Handle blockquotes (> text)
       if (trimmedParagraph.startsWith('> ')) {
         return (
@@ -155,7 +169,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           </blockquote>
         );
       }
-      
+
       // Regular paragraph
       return (
         <p key={index} className="concept-paragraph" dangerouslySetInnerHTML={{ __html: formattedText }} />
@@ -176,7 +190,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   // Load localized content when concept or language changes
   useEffect(() => {
     let isMounted = true;
-    
+
     const loadContent = async () => {
       if (!selectedConcept) {
         if (isMounted) {
@@ -186,19 +200,19 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
         }
         return;
       }
-      
+
       if (isMounted) {
         setContentLoading(true);
         setContentError(null);
       }
-      
+
       try {
         const content = await getConceptLocalizedContent(selectedConcept);
         if (isMounted) {
           setLocalizedContent(content);
           setContentLoading(false);
           setContentError(null);
-          
+
           // Track that user has read this concept
           if (user?.uid) {
             trackUserActivity(user.uid, 'concept_read', selectedConcept.id, {
@@ -215,9 +229,9 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
         }
       }
     };
-    
+
     loadContent();
-    
+
     return () => {
       isMounted = false;
     };
@@ -228,10 +242,10 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
     const clearCache = () => {
       setLocalizedContentCache(new Map());
     };
-    
+
     // Use setTimeout to avoid synchronous setState in effect
     const timeoutId = setTimeout(clearCache, 0);
-    
+
     return () => {
       clearTimeout(timeoutId);
     };
@@ -266,7 +280,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
       <ErrorState
         title="Error Loading Content"
         message={`Failed to load concepts: ${error.message}`}
-        icon="📄"
+        icon={<IoDocumentTextOutline aria-hidden="true" />}
         variant="network"
         onRetry={() => window.location.reload()}
         showRetry={true}
@@ -279,7 +293,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
       <ErrorState
         title="Content Not Found"
         message="The requested topic or subject could not be found."
-        icon="🔍"
+        icon={<IoSearchOutline aria-hidden="true" />}
         variant="notFound"
         onRetry={handleBack}
         showRetry={true}
@@ -293,7 +307,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
         <ErrorState
           title="No Concepts Available"
           message="This topic doesn't have any concepts yet. Check back later for new content."
-          icon="📖"
+          icon={<IoBookOutline aria-hidden="true" />}
           variant="default"
           onRetry={handleBack}
           showRetry={true}
@@ -305,331 +319,338 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   return (
     <ErrorBoundary>
       <div className="concept-view">
-      {/* Breadcrumb navigation */}
-      <div className="breadcrumb">
-        <button onClick={() => navigateWithState('/subjects')} className="breadcrumb-link">
-          Subjects
-        </button>
-        <span className="breadcrumb-separator">›</span>
-        <button onClick={handleBack} className="breadcrumb-link">
-          {subject.name}
-        </button>
-        <span className="breadcrumb-separator">›</span>
-        <span className="breadcrumb-current">{topic.name}</span>
-      </div>
-
-      <div className="concept-layout">
-        {/* Concept list sidebar */}
-        <div className="concept-sidebar">
-          <div className="sidebar-header">
-            <h4>Concepts in {topic.name}</h4>
-            <FavoriteButton 
-              itemId={topicId} 
-              itemType="topic" 
-              size="small"
-              showLabel={true}
-            />
-          </div>
-          <div className="concept-list">
-            {concepts.map((concept) => (
-              <button
-                key={concept.id}
-                className={`concept-item ${selectedConcept?.id === concept.id ? 'active' : ''} ${isConceptFavorited(concept.id) ? 'favorited' : ''}`}
-                onClick={() => handleConceptSelect(concept)}
-              >
-                <div className="concept-item-header">
-                  <div className="concept-item-title">{concept.title}</div>
-                  <FavoriteButton 
-                    itemId={concept.id} 
-                    itemType="concept" 
-                    size="small"
-                  />
-                </div>
-                <div className="concept-item-meta">
-                  <span className={`difficulty ${concept.difficulty}`}>
-                    {concept.difficulty}
-                  </span>
-                  <span className="read-time">
-                    {concept.estimatedReadTime} min
-                  </span>
-                  {isConceptFavorited(concept.id) && (
-                    <span className="favorite-indicator" title="Favorited">
-                      ⭐
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+        {/* Breadcrumb navigation */}
+        <div className="breadcrumb">
+          <button onClick={() => navigateWithState('/subjects')} className="breadcrumb-link">
+            Subjects
+          </button>
+          <span className="breadcrumb-separator">›</span>
+          <button onClick={handleBack} className="breadcrumb-link">
+            {subject.name}
+          </button>
+          <span className="breadcrumb-separator">›</span>
+          <span className="breadcrumb-current">{topic.name}</span>
         </div>
 
-        {/* Main concept content */}
-        <div className="concept-content">
-          {contentLoading ? (
-            <LoadingSpinner message={isTranslating ? `Translating to ${getLanguageDisplayName(currentLanguage)}...` : "Loading content..."} />
-          ) : contentError ? (
-            <ErrorState
-              title="Error Loading Content"
-              message={contentError}
-              icon="⚠️"
-              variant="network"
-              size="small"
-              onRetry={() => {
-                // Force refresh of content
-                setLocalizedContentCache(new Map());
-                setContentError(null);
-                if (selectedConcept) {
-                  setContentLoading(true);
-                  getConceptLocalizedContent(selectedConcept)
-                    .then(content => {
-                      setLocalizedContent(content);
-                      setContentLoading(false);
-                    })
-                    .catch(error => {
-                      console.error('Error loading localized content:', error);
-                      setLocalizedContent(null);
-                      setContentLoading(false);
-                      setContentError(error.message || 'Failed to load content');
-                    });
-                }
-              }}
-              showRetry={true}
-            />
-          ) : selectedConcept && localizedContent ? (
-            <>
-              <div className="concept-header">
-                <div className="concept-title-section">
-                  <div className="title-with-favorite">
-                    <h2>{localizedContent.content.title || selectedConcept.title}</h2>
-                    <FavoriteButton 
-                      itemId={selectedConcept.id} 
-                      itemType="concept" 
-                      size="large"
-                      showLabel={true}
+        <div className="concept-layout">
+          {/* Concept list sidebar */}
+          <div className="concept-sidebar">
+            <div className="sidebar-header">
+              <h4>Concepts in {topic.name}</h4>
+              <FavoriteButton
+                itemId={topicId}
+                itemType="topic"
+                size="small"
+                showLabel={true}
+              />
+            </div>
+            <div className="concept-list">
+              {concepts.map((concept) => (
+                <button
+                  key={concept.id}
+                  className={`concept-item ${selectedConcept?.id === concept.id ? 'active' : ''} ${isConceptFavorited(concept.id) ? 'favorited' : ''}`}
+                  onClick={() => handleConceptSelect(concept)}
+                >
+                  <div className="concept-item-header">
+                    <div className="concept-item-title">{concept.title}</div>
+                    <FavoriteButton
+                      itemId={concept.id}
+                      itemType="concept"
+                      size="small"
                     />
                   </div>
-                  
-                  {/* Language and translation status notices */}
-                  {localizedContent.isFallback && (
-                    <div className={`language-fallback-notice ${localizedContent.fallbackReason || ''}`}>
-                      <span className="fallback-icon">
-                        {localizedContent.fallbackReason === 'translating' ? '⟳' : 
-                         localizedContent.fallbackReason === 'translation_failed' ? '⚠️' : 
-                         localizedContent.fallbackReason === 'translation_unavailable' ? 'ℹ️' : 'ℹ️'}
-                      </span>
-                      <div className="fallback-message">
-                        {localizedContent.fallbackReason === 'translating' && (
-                          <>
-                            <strong>Translating...</strong><br />
-                            Content is being translated to {getLanguageDisplayName(currentLanguage)}
-                          </>
-                        )}
-                        {localizedContent.fallbackReason === 'translation_failed' && (
-                          <>
-                            <strong>Translation Failed</strong><br />
-                            Showing content in {getLanguageDisplayName(localizedContent.language)}. Translation error occurred.
-                          </>
-                        )}
-                        {localizedContent.fallbackReason === 'translation_unavailable' && (
-                          <>
-                            <strong>Translation Unavailable</strong><br />
-                            Showing content in {getLanguageDisplayName(localizedContent.language)}. AI translation not available.
-                          </>
-                        )}
-                        {localizedContent.fallbackReason === 'language_unavailable' && (
-                          <>
-                            <strong>Language Not Available</strong><br />
-                            Showing content in {getLanguageDisplayName(localizedContent.language)} (available language).
-                          </>
-                        )}
-                        {!localizedContent.fallbackReason && (
-                          <>
-                            Content shown in {getLanguageDisplayName(localizedContent.language)}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {localizedContent.isTranslated && !localizedContent.isFallback && (
-                    <div className="language-fallback-notice translating">
-                      <span className="fallback-icon">✨</span>
-                      <div className="fallback-message">
-                        <strong>AI Translated</strong><br />
-                        This content was automatically translated to {getLanguageDisplayName(currentLanguage)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="concept-meta">
-                  <span className={`difficulty ${selectedConcept.difficulty}`}>
-                    {selectedConcept.difficulty}
-                  </span>
-                  <span className="read-time">
-                    {selectedConcept.estimatedReadTime} min read
-                  </span>
-                  {selectedConcept.updatedAt && (
-                    <span className="last-updated">
-                      Updated {new Date(selectedConcept.updatedAt.seconds * 1000).toLocaleDateString()}
+                  <div className="concept-item-meta">
+                    <span className={`difficulty ${concept.difficulty}`}>
+                      {concept.difficulty}
                     </span>
+                    <span className="read-time">
+                      {concept.estimatedReadTime} min
+                    </span>
+                    {isConceptFavorited(concept.id) && (
+                      <span className="favorite-indicator" title="Favorited">
+                        <IoStar aria-hidden="true" />
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main concept content */}
+          <div className="concept-content">
+            {contentLoading ? (
+              <LoadingSpinner message={isTranslating ? `Translating to ${getLanguageDisplayName(currentLanguage)}...` : "Loading content..."} />
+            ) : contentError ? (
+              <ErrorState
+                title="Error Loading Content"
+                message={contentError}
+                icon={<IoWarningOutline aria-hidden="true" />}
+                variant="network"
+                size="small"
+                onRetry={() => {
+                  // Force refresh of content
+                  setLocalizedContentCache(new Map());
+                  setContentError(null);
+                  if (selectedConcept) {
+                    setContentLoading(true);
+                    getConceptLocalizedContent(selectedConcept)
+                      .then(content => {
+                        setLocalizedContent(content);
+                        setContentLoading(false);
+                      })
+                      .catch(error => {
+                        console.error('Error loading localized content:', error);
+                        setLocalizedContent(null);
+                        setContentLoading(false);
+                        setContentError(error.message || 'Failed to load content');
+                      });
+                  }
+                }}
+                showRetry={true}
+              />
+            ) : selectedConcept && localizedContent ? (
+              <>
+                <div className="concept-header">
+                  <div className="concept-title-section">
+                    <div className="title-with-favorite">
+                      <h2>{localizedContent.content.title || selectedConcept.title}</h2>
+                      <FavoriteButton
+                        itemId={selectedConcept.id}
+                        itemType="concept"
+                        size="large"
+                        showLabel={true}
+                      />
+                    </div>
+
+                    {/* Language and translation status notices */}
+                    {localizedContent.isFallback && (
+                      <div className={`language-fallback-notice ${localizedContent.fallbackReason || ''}`}>
+                        <span className="fallback-icon" aria-hidden="true">
+                          {localizedContent.fallbackReason === 'translating' ? (
+                            <IoRefreshOutline />
+                          ) : localizedContent.fallbackReason === 'translation_failed' ? (
+                            <IoWarningOutline />
+                          ) : (
+                            <IoInformationCircleOutline />
+                          )}
+                        </span>
+                        <div className="fallback-message">
+                          {localizedContent.fallbackReason === 'translating' && (
+                            <>
+                              <strong>Translating...</strong><br />
+                              Content is being translated to {getLanguageDisplayName(currentLanguage)}
+                            </>
+                          )}
+                          {localizedContent.fallbackReason === 'translation_failed' && (
+                            <>
+                              <strong>Translation Failed</strong><br />
+                              Showing content in {getLanguageDisplayName(localizedContent.language)}. Translation error occurred.
+                            </>
+                          )}
+                          {localizedContent.fallbackReason === 'translation_unavailable' && (
+                            <>
+                              <strong>Translation Unavailable</strong><br />
+                              Showing content in {getLanguageDisplayName(localizedContent.language)}. AI translation not available.
+                            </>
+                          )}
+                          {localizedContent.fallbackReason === 'language_unavailable' && (
+                            <>
+                              <strong>Language Not Available</strong><br />
+                              Showing content in {getLanguageDisplayName(localizedContent.language)} (available language).
+                            </>
+                          )}
+                          {!localizedContent.fallbackReason && (
+                            <>
+                              Content shown in {getLanguageDisplayName(localizedContent.language)}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {localizedContent.isTranslated && !localizedContent.isFallback && (
+                      <div className="language-fallback-notice translating">
+                        <span className="fallback-icon" aria-hidden="true">
+                          <IoSparklesOutline />
+                        </span>
+                        <div className="fallback-message">
+                          <strong>AI Translated</strong><br />
+                          This content was automatically translated to {getLanguageDisplayName(currentLanguage)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="concept-meta">
+                    <span className={`difficulty ${selectedConcept.difficulty}`}>
+                      {selectedConcept.difficulty}
+                    </span>
+                    <span className="read-time">
+                      {selectedConcept.estimatedReadTime} min read
+                    </span>
+                    {selectedConcept.updatedAt && (
+                      <span className="last-updated">
+                        Updated {new Date(selectedConcept.updatedAt.seconds * 1000).toLocaleDateString()}
+                      </span>
+                    )}
+                    <span className="current-language">
+                      Language: {getLanguageDisplayName(currentLanguage)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="concept-body">
+                  {/* Summary section */}
+                  {localizedContent.content.summary && (
+                    <div className="concept-summary">
+                      <strong>Summary:</strong> {localizedContent.content.summary}
+                    </div>
                   )}
-                  <span className="current-language">
-                    Language: {getLanguageDisplayName(currentLanguage)}
-                  </span>
-                </div>
-              </div>
 
-              <div className="concept-body">
-                {/* Summary section */}
-                {localizedContent.content.summary && (
-                  <div className="concept-summary">
-                    <strong>Summary:</strong> {localizedContent.content.summary}
+                  {/* Main content with rich formatting */}
+                  <div className="concept-text">
+                    {renderRichContent(localizedContent.content.body)}
                   </div>
-                )}
-                
-                {/* Main content with rich formatting */}
-                <div className="concept-text">
-                  {renderRichContent(localizedContent.content.body)}
-                </div>
 
-                {/* Images section */}
-                {localizedContent.content.images && localizedContent.content.images.length > 0 && (
-                  <div className="concept-images">
-                    <h4>Visual References:</h4>
-                    <div className="images-grid">
-                      {localizedContent.content.images.map((imageUrl, index) => (
-                        <div key={index} className="concept-image">
-                          <img 
-                            src={imageUrl} 
-                            alt={`Illustration ${index + 1} for ${selectedConcept.title}`}
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Examples section with enhanced formatting */}
-                {localizedContent.content.examples && localizedContent.content.examples.length > 0 && (
-                  <div className="concept-examples">
-                    <h4>Examples:</h4>
-                    <div className="examples-list">
-                      {localizedContent.content.examples.map((example, index) => (
-                        <div key={index} className="example-item">
-                          <span className="example-number">{index + 1}.</span>
-                          <span className="example-text">{example}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* External assets section */}
-                {localizedContent.content.externalAssets && localizedContent.content.externalAssets.length > 0 && (
-                  <div className="external-assets">
-                    <h4>Additional Resources:</h4>
-                    <div className="assets-list">
-                      {localizedContent.content.externalAssets.map((assetUrl, index) => (
-                        <a 
-                          key={index} 
-                          href={assetUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="asset-link"
-                        >
-                          📎 Resource {index + 1}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* AR/3D Visualization indicator */}
-                {selectedConcept.arEnabled && (
-                  <div className="ar-indicator">
-                    <div className="ar-badge">
-                      <span className="ar-icon">🥽</span>
-                      <div className="ar-text">
-                        <strong>AR Enhanced</strong>
-                        <p>This concept supports 3D visualization (coming in Phase 2)</p>
+                  {/* Images section */}
+                  {localizedContent.content.images && localizedContent.content.images.length > 0 && (
+                    <div className="concept-images">
+                      <h4>Visual References:</h4>
+                      <div className="images-grid">
+                        {localizedContent.content.images.map((imageUrl, index) => (
+                          <div key={index} className="concept-image">
+                            <img
+                              src={imageUrl}
+                              alt={`Illustration ${index + 1} for ${selectedConcept.title}`}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  )}
+
+                  {/* Examples section with enhanced formatting */}
+                  {localizedContent.content.examples && localizedContent.content.examples.length > 0 && (
+                    <div className="concept-examples">
+                      <h4>Examples:</h4>
+                      <div className="examples-list">
+                        {localizedContent.content.examples.map((example, index) => (
+                          <div key={index} className="example-item">
+                            <span className="example-number">{index + 1}.</span>
+                            <span className="example-text">{example}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* External assets section */}
+                  {localizedContent.content.externalAssets && localizedContent.content.externalAssets.length > 0 && (
+                    <div className="external-assets">
+                      <h4>Additional Resources:</h4>
+                      <div className="assets-list">
+                        {localizedContent.content.externalAssets.map((assetUrl, index) => (
+                          <a
+                            key={index}
+                            href={assetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="asset-link"
+                          >
+                            <IoAttachOutline aria-hidden="true" />
+                            <span>Resource {index + 1}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AR/3D Visualization indicator */}
+                  {selectedConcept.arEnabled && (
+                    <div className="ar-indicator">
+                      <div className="ar-badge">
+                        <span className="ar-icon" aria-hidden="true"><IoGlassesOutline /></span>
+                        <div className="ar-text">
+                          <strong>AR Enhanced</strong>
+                          <p>This concept supports 3D visualization (coming in Phase 2)</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Enhanced related concepts navigation */}
+                {selectedConcept.relatedConcepts && selectedConcept.relatedConcepts.length > 0 && (
+                  <div className="related-concepts">
+                    <h4>Related Concepts:</h4>
+                    <div className="related-list">
+                      {selectedConcept.relatedConcepts.map((relatedId) => {
+                        const relatedConcept = concepts.find(c => c.id === relatedId);
+                        if (!relatedConcept) return null;
+
+                        return (
+                          <button
+                            key={relatedId}
+                            className="related-concept-btn"
+                            onClick={() => handleConceptSelect(relatedConcept)}
+                          >
+                            <div className="related-concept-info">
+                              <span className="related-title">{relatedConcept.title}</span>
+                              <span className={`related-difficulty ${relatedConcept.difficulty}`}>
+                                {relatedConcept.difficulty}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
-              </div>
-
-              {/* Enhanced related concepts navigation */}
-              {selectedConcept.relatedConcepts && selectedConcept.relatedConcepts.length > 0 && (
-                <div className="related-concepts">
-                  <h4>Related Concepts:</h4>
-                  <div className="related-list">
-                    {selectedConcept.relatedConcepts.map((relatedId) => {
-                      const relatedConcept = concepts.find(c => c.id === relatedId);
-                      if (!relatedConcept) return null;
-                      
-                      return (
-                        <button
-                          key={relatedId}
-                          className="related-concept-btn"
-                          onClick={() => handleConceptSelect(relatedConcept)}
-                        >
-                          <div className="related-concept-info">
-                            <span className="related-title">{relatedConcept.title}</span>
-                            <span className={`related-difficulty ${relatedConcept.difficulty}`}>
-                              {relatedConcept.difficulty}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : selectedConcept ? (
-            <ErrorState
-              title="Content Not Available"
-              message="Content for this concept is not available in the selected language."
-              icon="🌐"
-              variant="default"
-              size="small"
-              onRetry={() => {
-                // Force refresh of content
-                setLocalizedContentCache(new Map());
-                if (selectedConcept) {
-                  setContentLoading(true);
-                  getConceptLocalizedContent(selectedConcept)
-                    .then(content => {
-                      setLocalizedContent(content);
-                      setContentLoading(false);
-                    })
-                    .catch(error => {
-                      console.error('Error loading localized content:', error);
-                      setLocalizedContent(null);
-                      setContentLoading(false);
-                    });
-                }
-              }}
-              showRetry={true}
-            />
-          ) : (
-            <ErrorState
-              title="Select a Concept"
-              message="Choose a concept from the list to view its content."
-              icon="👈"
-              variant="default"
-              size="small"
-              showRetry={false}
-            />
-          )}
+              </>
+            ) : selectedConcept ? (
+              <ErrorState
+                title="Content Not Available"
+                message="Content for this concept is not available in the selected language."
+                icon={<IoGlobeOutline aria-hidden="true" />}
+                variant="default"
+                size="small"
+                onRetry={() => {
+                  // Force refresh of content
+                  setLocalizedContentCache(new Map());
+                  if (selectedConcept) {
+                    setContentLoading(true);
+                    getConceptLocalizedContent(selectedConcept)
+                      .then(content => {
+                        setLocalizedContent(content);
+                        setContentLoading(false);
+                      })
+                      .catch(error => {
+                        console.error('Error loading localized content:', error);
+                        setLocalizedContent(null);
+                        setContentLoading(false);
+                      });
+                  }
+                }}
+                showRetry={true}
+              />
+            ) : (
+              <ErrorState
+                title="Select a Concept"
+                message="Choose a concept from the list to view its content."
+                icon={<IoArrowBackOutline aria-hidden="true" />}
+                variant="default"
+                size="small"
+                showRetry={false}
+              />
+            )}
+          </div>
         </div>
-      </div>
 
-      <style jsx>{`
+        <style jsx>{`
         .concept-view {
           padding: 1rem;
           max-width: 1200px;
@@ -797,6 +818,9 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          white-space: nowrap;
+          flex-shrink: 0;
+          display: inline-block;
         }
 
         .difficulty.beginner {

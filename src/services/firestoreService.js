@@ -308,37 +308,100 @@ export const searchService = {
     const results = [];
     const searchTerm = query.toLowerCase();
 
+    // Get all data for cross-referencing
+    const [allSubjects, allTopics, allConcepts] = await Promise.all([
+      subjectService.getAll(),
+      topicService.getAll(),
+      conceptService.getAll(),
+    ]);
+
+    // Create lookup maps for efficient searching
+    const subjectMap = new Map(allSubjects.map((s) => [s.id, s]));
+    const topicMap = new Map(allTopics.map((t) => [t.id, t]));
+
     if (contentType === "all" || contentType === "subjects") {
-      const subjects = await subjectService.getAll();
-      const matchingSubjects = subjects.filter(
+      const matchingSubjects = allSubjects.filter(
         (subject) =>
           subject.name.toLowerCase().includes(searchTerm) ||
           subject.description.toLowerCase().includes(searchTerm)
       );
-      results.push(...matchingSubjects.map((s) => ({ ...s, type: "subject" })));
+      results.push(
+        ...matchingSubjects.map((s) => ({
+          ...s,
+          type: "subject",
+          title: s.name,
+          description: s.description,
+        }))
+      );
     }
 
     if (contentType === "all" || contentType === "topics") {
-      const topics = await topicService.getAll();
-      const matchingTopics = topics.filter(
+      const matchingTopics = allTopics.filter(
         (topic) =>
           topic.name.toLowerCase().includes(searchTerm) ||
           topic.description.toLowerCase().includes(searchTerm)
       );
-      results.push(...matchingTopics.map((t) => ({ ...t, type: "topic" })));
+      results.push(
+        ...matchingTopics.map((t) => {
+          const subject = subjectMap.get(t.subjectId);
+          return {
+            ...t,
+            type: "topic",
+            title: t.name,
+            description: t.description,
+            subjectName: subject?.name,
+          };
+        })
+      );
     }
 
     if (contentType === "all" || contentType === "concepts") {
-      const concepts = await conceptService.getAll();
-      const matchingConcepts = concepts.filter(
+      const matchingConcepts = allConcepts.filter(
         (concept) =>
           concept.title.toLowerCase().includes(searchTerm) ||
           (concept.content?.en?.body &&
-            concept.content.en.body.toLowerCase().includes(searchTerm))
+            concept.content.en.body.toLowerCase().includes(searchTerm)) ||
+          (concept.content?.en?.summary &&
+            concept.content.en.summary.toLowerCase().includes(searchTerm))
       );
-      results.push(...matchingConcepts.map((c) => ({ ...c, type: "concept" })));
+      results.push(
+        ...matchingConcepts.map((c) => {
+          const topic = topicMap.get(c.topicId);
+          const subject = topic ? subjectMap.get(topic.subjectId) : null;
+          return {
+            ...c,
+            type: "concept",
+            title: c.title,
+            description:
+              c.content?.en?.summary ||
+              c.content?.en?.body?.substring(0, 150) + "..." ||
+              "No description available",
+            topicName: topic?.name,
+            subjectName: subject?.name,
+            subjectId: subject?.id,
+          };
+        })
+      );
     }
 
-    return results;
+    // Sort results by relevance (simple scoring based on title match)
+    return results.sort((a, b) => {
+      const aTitle = (a.title || a.name || "").toLowerCase();
+      const bTitle = (b.title || b.name || "").toLowerCase();
+
+      const aExactMatch = aTitle === searchTerm;
+      const bExactMatch = bTitle === searchTerm;
+
+      if (aExactMatch && !bExactMatch) return -1;
+      if (!aExactMatch && bExactMatch) return 1;
+
+      const aStartsWith = aTitle.startsWith(searchTerm);
+      const bStartsWith = bTitle.startsWith(searchTerm);
+
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+
+      return aTitle.localeCompare(bTitle);
+    });
   },
 };

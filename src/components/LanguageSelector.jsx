@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { IoGlobeOutline, IoRefreshOutline } from "react-icons/io5";
 import { useLanguage } from "../context/LanguageContext";
 
-export default function LanguageSelector({ 
+export default function LanguageSelector({
   variant = "dropdown", // "dropdown" | "compact" | "inline"
   showLabel = true,
   className = ""
@@ -27,16 +28,20 @@ export default function LanguageSelector({
   if (variant === "compact") {
     return (
       <div className={`language-selector compact ${className}`}>
-        <button 
+        <button
           className="language-toggle"
           onClick={() => setIsOpen(!isOpen)}
           disabled={isTranslating}
           title={`Current language: ${currentLanguageInfo?.nativeName}`}
         >
-          🌐 {currentLanguageInfo?.code.toUpperCase()}
-          {isTranslating && <span className="translating-indicator">⟳</span>}
+          <IoGlobeOutline aria-hidden="true" /> {currentLanguageInfo?.code.toUpperCase()}
+          {isTranslating && (
+            <span className="translating-indicator">
+              <IoRefreshOutline aria-hidden="true" />
+            </span>
+          )}
         </button>
-        
+
         {isOpen && (
           <div className="language-dropdown">
             <div className="language-dropdown-header">
@@ -47,7 +52,7 @@ export default function LanguageSelector({
                 </small>
               )}
             </div>
-            
+
             <div className="language-options">
               {supportedLanguages.map(language => (
                 <button
@@ -62,10 +67,10 @@ export default function LanguageSelector({
             </div>
           </div>
         )}
-        
+
         {isOpen && (
-          <div 
-            className="language-overlay" 
+          <div
+            className="language-overlay"
             onClick={() => setIsOpen(false)}
           />
         )}
@@ -92,7 +97,7 @@ export default function LanguageSelector({
         </select>
         {isTranslating && (
           <span className="translating-indicator" title="Translating content...">
-            ⟳
+            <IoRefreshOutline aria-hidden="true" />
           </span>
         )}
       </div>
@@ -112,36 +117,38 @@ export default function LanguageSelector({
           )}
         </label>
       )}
-      
+
       <div className="language-dropdown-container">
-        <button 
+        <button
           className={`language-dropdown-trigger ${isOpen ? 'open' : ''}`}
           onClick={() => setIsOpen(!isOpen)}
           disabled={isTranslating}
         >
           <span className="selected-language">
-            <span className="language-flag">🌐</span>
+            <span className="language-flag" aria-hidden="true">
+              <IoGlobeOutline />
+            </span>
             <span className="language-name">{currentLanguageInfo?.nativeName}</span>
             <span className="language-english">({currentLanguageInfo?.name})</span>
           </span>
           <span className="dropdown-arrow">▼</span>
           {isTranslating && (
             <span className="translating-indicator" title="Translating content...">
-              ⟳
+              <IoRefreshOutline aria-hidden="true" />
             </span>
           )}
         </button>
-        
+
         {isOpen && (
           <div className="language-dropdown-menu">
             <div className="language-search">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search languages..."
                 className="language-search-input"
               />
             </div>
-            
+
             <div className="language-options-list">
               {supportedLanguages.map(language => (
                 <button
@@ -159,11 +166,11 @@ export default function LanguageSelector({
                 </button>
               ))}
             </div>
-            
+
             <div className="language-dropdown-footer">
               <small>
-                {isGeminiAvailable 
-                  ? "Content will be translated automatically" 
+                {isGeminiAvailable
+                  ? "Content will be translated automatically"
                   : "Only pre-translated content available"
                 }
               </small>
@@ -171,10 +178,10 @@ export default function LanguageSelector({
           </div>
         )}
       </div>
-      
+
       {isOpen && (
-        <div 
-          className="language-overlay" 
+        <div
+          className="language-overlay"
           onClick={() => setIsOpen(false)}
         />
       )}

@@ -7,7 +7,7 @@
 - ✅ Extended AuthContext with role-based authentication
 - ✅ Added `isAdmin` flag and role checking
 - ✅ Created AdminRoute component for protected admin routes
-- ✅ Updated user signup to include default "learner" role
+- ✅ All new signups create "learner" role accounts (admin accounts created manually for security)
 
 ### 2. **Firestore Integration**
 

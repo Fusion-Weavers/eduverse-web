@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { subjectService } from "../../services/firestoreService";
 import LoadingSpinner from "../LoadingSpinner";
 import ErrorState from "../ErrorState";
+import { getSubjectIcon } from "../../utils/iconMap";
 
 export default function SubjectManager() {
   const [subjects, setSubjects] = useState([]);
@@ -43,7 +44,7 @@ export default function SubjectManager() {
       } else {
         await subjectService.create(formData);
       }
-      
+
       await loadSubjects();
       resetForm();
     } catch (err) {
@@ -93,7 +94,7 @@ export default function SubjectManager() {
     <div className="subject-manager">
       <div className="manager-header">
         <h2>Subject Management</h2>
-        <button 
+        <button
           className="btn-primary"
           onClick={() => setShowForm(true)}
         >
@@ -107,14 +108,14 @@ export default function SubjectManager() {
         <div className="form-modal">
           <div className="form-container">
             <h3>{editingSubject ? "Edit Subject" : "Add New Subject"}</h3>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Name</label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
@@ -123,18 +124,18 @@ export default function SubjectManager() {
                 <label>Description</label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label>Icon (Emoji)</label>
+                <label>Icon (Ionicon key)</label>
                 <input
                   type="text"
                   value={formData.icon}
-                  onChange={(e) => setFormData({...formData, icon: e.target.value})}
-                  placeholder="📚"
+                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                  placeholder="library"
                 />
               </div>
 
@@ -142,7 +143,7 @@ export default function SubjectManager() {
                 <label>Difficulty</label>
                 <select
                   value={formData.difficulty}
-                  onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
@@ -165,12 +166,17 @@ export default function SubjectManager() {
         {subjects.map(subject => (
           <div key={subject.id} className="subject-card">
             <div className="subject-header">
-              <span className="subject-icon">{subject.icon}</span>
+              <span className="subject-icon" aria-hidden="true">
+                {(() => {
+                  const SubjectIcon = getSubjectIcon(subject.icon);
+                  return <SubjectIcon />;
+                })()}
+              </span>
               <h3>{subject.name}</h3>
             </div>
-            
+
             <p className="subject-description">{subject.description}</p>
-            
+
             <div className="subject-meta">
               <span className={`difficulty ${subject.difficulty}`}>
                 {subject.difficulty}
@@ -182,7 +188,7 @@ export default function SubjectManager() {
 
             <div className="subject-actions">
               <button onClick={() => handleEdit(subject)}>Edit</button>
-              <button 
+              <button
                 onClick={() => handleDelete(subject.id)}
                 className="btn-danger"
               >

@@ -1,12 +1,13 @@
 import React from 'react';
+import { IoWarningOutline } from 'react-icons/io5';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null
     };
   }
 
@@ -18,7 +19,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log error details
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       error: error,
       errorInfo: errorInfo
@@ -31,21 +32,21 @@ class ErrorBoundary extends React.Component {
   }
 
   handleRetry = () => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
     });
   };
 
   render() {
     if (this.state.hasError) {
       const { fallback: Fallback, showDetails = false } = this.props;
-      
+
       // Use custom fallback component if provided
       if (Fallback) {
         return (
-          <Fallback 
+          <Fallback
             error={this.state.error}
             errorInfo={this.state.errorInfo}
             onRetry={this.handleRetry}
@@ -57,18 +58,20 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="error-boundary">
           <div className="error-content">
-            <div className="error-icon">⚠️</div>
+            <div className="error-icon" aria-hidden="true">
+              <IoWarningOutline />
+            </div>
             <h2>Something went wrong</h2>
             <p>We're sorry, but something unexpected happened. Please try again.</p>
-            
+
             <div className="error-actions">
-              <button 
+              <button
                 onClick={this.handleRetry}
                 className="retry-btn"
               >
                 Try Again
               </button>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="reload-btn"
               >

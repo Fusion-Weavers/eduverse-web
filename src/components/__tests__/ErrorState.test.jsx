@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { IoFlameOutline } from 'react-icons/io5';
 import ErrorState from '../ErrorState';
 
 describe('ErrorState', () => {
@@ -11,9 +12,9 @@ describe('ErrorState', () => {
 
   it('renders with custom title and message', () => {
     render(
-      <ErrorState 
-        title="Custom Error" 
-        message="Custom error message" 
+      <ErrorState
+        title="Custom Error"
+        message="Custom error message"
       />
     );
     expect(screen.getByText('Custom Error')).toBeInTheDocument();
@@ -23,10 +24,10 @@ describe('ErrorState', () => {
   it('renders retry button when showRetry is true and onRetry is provided', () => {
     const mockRetry = vi.fn();
     render(<ErrorState onRetry={mockRetry} showRetry={true} />);
-    
+
     const retryButton = screen.getByText('Try Again');
     expect(retryButton).toBeInTheDocument();
-    
+
     fireEvent.click(retryButton);
     expect(mockRetry).toHaveBeenCalledOnce();
   });
@@ -40,10 +41,10 @@ describe('ErrorState', () => {
     });
 
     render(<ErrorState showReload={true} />);
-    
+
     const reloadButton = screen.getByText('Reload Page');
     expect(reloadButton).toBeInTheDocument();
-    
+
     fireEvent.click(reloadButton);
     expect(mockReload).toHaveBeenCalledOnce();
   });
@@ -65,7 +66,7 @@ describe('ErrorState', () => {
   });
 
   it('renders custom icon', () => {
-    render(<ErrorState icon="🔥" />);
-    expect(screen.getByText('🔥')).toBeInTheDocument();
+    render(<ErrorState icon={<IoFlameOutline data-testid="custom-icon" />} />);
+    expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
   });
 });

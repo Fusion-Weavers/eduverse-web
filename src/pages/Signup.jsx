@@ -7,7 +7,6 @@ import { useNavigate, Link } from "react-router-dom";
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -31,7 +30,7 @@ export default function Signup() {
       await setDoc(doc(db, "users", res.user.uid), {
         email,
         preferredLanguage: "en",
-        role: isAdmin ? "admin" : "learner",
+        role: "learner",
         createdAt: serverTimestamp(),
       });
 
@@ -61,21 +60,6 @@ export default function Signup() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-
-        <div className="admin-option">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={isAdmin}
-              onChange={(e) => setIsAdmin(e.target.checked)}
-            />
-            <span className="checkmark"></span>
-            Create as Admin Account
-          </label>
-          <p className="admin-note">
-            Admin accounts can manage educational content and AR features
-          </p>
-        </div>
 
         <button type="submit">Create Account</button>
       </form>

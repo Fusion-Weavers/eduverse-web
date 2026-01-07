@@ -1,9 +1,10 @@
 import React from 'react';
+import { IoWarningOutline } from 'react-icons/io5';
 
-export default function ErrorState({ 
+export default function ErrorState({
   title = "Something went wrong",
   message = "An unexpected error occurred. Please try again.",
-  icon = "⚠️",
+  icon = <IoWarningOutline aria-hidden="true" />,
   showRetry = true,
   onRetry,
   showReload = false,
@@ -39,11 +40,11 @@ export default function ErrorState({
         <div className="error-icon">{icon}</div>
         <h3 className="error-title">{title}</h3>
         <p className="error-message">{message}</p>
-        
+
         {(showRetry || showReload) && (
           <div className="error-actions">
             {showRetry && onRetry && (
-              <button 
+              <button
                 onClick={handleRetry}
                 className="error-button retry-button"
               >
@@ -51,7 +52,7 @@ export default function ErrorState({
               </button>
             )}
             {showReload && (
-              <button 
+              <button
                 onClick={handleReload}
                 className="error-button reload-button"
               >

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { IoGlassesOutline } from "react-icons/io5";
 import { topicService, subjectService, conceptService } from "../../services/firestoreService";
 import LoadingSpinner from "../LoadingSpinner";
 import ErrorState from "../ErrorState";
@@ -79,7 +80,7 @@ export default function TopicManager() {
       } else {
         await topicService.create(formData);
       }
-      
+
       await loadData();
       resetForm();
     } catch (err) {
@@ -96,7 +97,7 @@ export default function TopicManager() {
         ...conceptFormData,
         topicId: selectedTopic.id
       });
-      
+
       await loadConcepts(selectedTopic.id);
       resetConceptForm();
     } catch (err) {
@@ -181,7 +182,7 @@ export default function TopicManager() {
     <div className="topic-manager">
       <div className="manager-header">
         <h2>Topic Management</h2>
-        <button 
+        <button
           className="btn-primary"
           onClick={() => setShowForm(true)}
         >
@@ -195,13 +196,13 @@ export default function TopicManager() {
         <div className="form-modal">
           <div className="form-container">
             <h3>{editingTopic ? "Edit Topic" : "Add New Topic"}</h3>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Subject</label>
                 <select
                   value={formData.subjectId}
-                  onChange={(e) => setFormData({...formData, subjectId: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
                   required
                 >
                   <option value="">Select Subject</option>
@@ -218,7 +219,7 @@ export default function TopicManager() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
@@ -227,7 +228,7 @@ export default function TopicManager() {
                 <label>Description</label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   required
                 />
               </div>
@@ -237,7 +238,7 @@ export default function TopicManager() {
                   <label>Difficulty</label>
                   <select
                     value={formData.difficulty}
-                    onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -250,7 +251,7 @@ export default function TopicManager() {
                   <input
                     type="number"
                     value={formData.estimatedTime}
-                    onChange={(e) => setFormData({...formData, estimatedTime: parseInt(e.target.value)})}
+                    onChange={(e) => setFormData({ ...formData, estimatedTime: parseInt(e.target.value) })}
                     min="1"
                   />
                 </div>
@@ -273,7 +274,7 @@ export default function TopicManager() {
             <div className="concepts-header">
               <h3>Concepts for: {selectedTopic.name}</h3>
               <div>
-                <button 
+                <button
                   className="btn-primary"
                   onClick={() => setShowConceptForm(true)}
                 >
@@ -293,7 +294,7 @@ export default function TopicManager() {
                       type="text"
                       value={conceptFormData.title}
                       onChange={(e) => setConceptFormData({
-                        ...conceptFormData, 
+                        ...conceptFormData,
                         title: e.target.value,
                         content: {
                           ...conceptFormData.content,
@@ -349,7 +350,7 @@ export default function TopicManager() {
                       <label>Difficulty</label>
                       <select
                         value={conceptFormData.difficulty}
-                        onChange={(e) => setConceptFormData({...conceptFormData, difficulty: e.target.value})}
+                        onChange={(e) => setConceptFormData({ ...conceptFormData, difficulty: e.target.value })}
                       >
                         <option value="beginner">Beginner</option>
                         <option value="intermediate">Intermediate</option>
@@ -362,7 +363,7 @@ export default function TopicManager() {
                       <input
                         type="number"
                         value={conceptFormData.estimatedReadTime}
-                        onChange={(e) => setConceptFormData({...conceptFormData, estimatedReadTime: parseInt(e.target.value)})}
+                        onChange={(e) => setConceptFormData({ ...conceptFormData, estimatedReadTime: parseInt(e.target.value) })}
                         min="1"
                       />
                     </div>
@@ -373,7 +374,7 @@ export default function TopicManager() {
                       <input
                         type="checkbox"
                         checked={conceptFormData.arEnabled}
-                        onChange={(e) => setConceptFormData({...conceptFormData, arEnabled: e.target.checked})}
+                        onChange={(e) => setConceptFormData({ ...conceptFormData, arEnabled: e.target.checked })}
                       />
                       Enable AR Visualization
                     </label>
@@ -384,7 +385,7 @@ export default function TopicManager() {
                       <label>Visualization Type</label>
                       <select
                         value={conceptFormData.visualizationType}
-                        onChange={(e) => setConceptFormData({...conceptFormData, visualizationType: e.target.value})}
+                        onChange={(e) => setConceptFormData({ ...conceptFormData, visualizationType: e.target.value })}
                       >
                         <option value="">Select Type</option>
                         <option value="3d-model">3D Model</option>
@@ -414,7 +415,9 @@ export default function TopicManager() {
                     </span>
                     <span className="read-time">{concept.estimatedReadTime}min</span>
                     {concept.arEnabled && (
-                      <span className="ar-enabled">🥽 AR</span>
+                      <span className="ar-enabled">
+                        <IoGlassesOutline aria-hidden="true" /> AR
+                      </span>
                     )}
                   </div>
                 </div>
@@ -431,9 +434,9 @@ export default function TopicManager() {
               <h3>{topic.name}</h3>
               <span className="subject-name">{getSubjectName(topic.subjectId)}</span>
             </div>
-            
+
             <p className="topic-description">{topic.description}</p>
-            
+
             <div className="topic-meta">
               <span className={`difficulty ${topic.difficulty}`}>
                 {topic.difficulty}
@@ -446,7 +449,7 @@ export default function TopicManager() {
                 View Concepts
               </button>
               <button onClick={() => handleEdit(topic)}>Edit</button>
-              <button 
+              <button
                 onClick={() => handleDelete(topic.id)}
                 className="btn-danger"
               >

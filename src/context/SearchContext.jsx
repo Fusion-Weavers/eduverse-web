@@ -45,7 +45,7 @@ export const SearchProvider = ({ children }) => {
       // Add delay to simulate search processing
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const results = searchContent(query.trim(), scope);
+      const results = await searchContent(query.trim(), scope);
       setSearchResults(results);
       
       // Add to search history if it's a new search

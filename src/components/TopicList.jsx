@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { IoArrowDownOutline, IoArrowUpOutline, IoBookOutline, IoLibraryOutline, IoSearchOutline, IoStar, IoSwapVerticalOutline, IoTimeOutline } from "react-icons/io5";
 import { useContent } from "../context/ContentContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useAuth } from "../context/AuthContext";
@@ -15,14 +16,14 @@ export default function TopicList({ subjectId, onTopicSelect }) {
   const { getTopicsBySubject, getConceptsByTopic, subjects, trackUserActivity, loading, error } = useContent();
   const { isTopicFavorited } = useFavorites();
   const { saveSortState, getSortState, navigateWithState } = useNavigation();
-  
+
   const sortKey = `topic-sort-${subjectId}`;
-  
+
   // Initialize sort state from navigation context
   const savedSortState = getSortState(sortKey);
   const [sortBy, setSortBy] = useState(savedSortState.sortBy || "name");
   const [sortOrder, setSortOrder] = useState(savedSortState.sortOrder || "asc");
-  
+
   // Filter state
   const [filters, setFilters] = useState({
     difficulty: 'all',
@@ -41,30 +42,30 @@ export default function TopicList({ subjectId, onTopicSelect }) {
   // Filter and sort topics based on current criteria
   const filteredAndSortedTopics = useMemo(() => {
     let filtered = [...topics];
-    
+
     // Apply difficulty filter
     if (filters.difficulty !== 'all') {
       filtered = filtered.filter(topic => topic.difficulty === filters.difficulty);
     }
-    
+
     // Apply search filter
     if (filters.searchTerm) {
       const searchTerm = filters.searchTerm.toLowerCase();
-      filtered = filtered.filter(topic => 
+      filtered = filtered.filter(topic =>
         topic.name.toLowerCase().includes(searchTerm) ||
         topic.description.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     // Apply favorites filter
     if (filters.showFavoritesOnly) {
       filtered = filtered.filter(topic => isTopicFavorited(topic.id));
     }
-    
+
     // Sort the filtered results
     const sorted = filtered.sort((a, b) => {
       let comparison = 0;
-      
+
       if (sortBy === "name") {
         comparison = a.name.localeCompare(b.name);
       } else if (sortBy === "difficulty") {
@@ -75,10 +76,10 @@ export default function TopicList({ subjectId, onTopicSelect }) {
       } else if (sortBy === "estimatedTime") {
         comparison = a.estimatedTime - b.estimatedTime;
       }
-      
+
       return sortOrder === "asc" ? comparison : -comparison;
     });
-    
+
     return sorted;
   }, [topics, filters, sortBy, sortOrder, isTopicFavorited]);
 
@@ -122,8 +123,8 @@ export default function TopicList({ subjectId, onTopicSelect }) {
   };
 
   const getSortIcon = (field) => {
-    if (sortBy !== field) return "↕️";
-    return sortOrder === "asc" ? "↑" : "↓";
+    if (sortBy !== field) return <IoSwapVerticalOutline aria-hidden="true" />;
+    return sortOrder === "asc" ? <IoArrowUpOutline aria-hidden="true" /> : <IoArrowDownOutline aria-hidden="true" />;
   };
 
   // Loading state
@@ -137,7 +138,7 @@ export default function TopicList({ subjectId, onTopicSelect }) {
       <ErrorState
         title="Error Loading Topics"
         message={`Failed to load topics: ${error.message}`}
-        icon="📚"
+        icon={<IoLibraryOutline aria-hidden="true" />}
         variant="network"
         onRetry={() => window.location.reload()}
         showRetry={true}
@@ -150,7 +151,7 @@ export default function TopicList({ subjectId, onTopicSelect }) {
       <ErrorState
         title="Subject Not Found"
         message="The requested subject could not be found."
-        icon="🔍"
+        icon={<IoSearchOutline aria-hidden="true" />}
         variant="notFound"
         showRetry={false}
       />
@@ -165,32 +166,32 @@ export default function TopicList({ subjectId, onTopicSelect }) {
           <p>{filteredAndSortedTopics.length} of {topics.length} topics</p>
         </div>
 
-        <TopicFilter 
+        <TopicFilter
           subjectId={subjectId}
           onFilterChange={handleFilterChange}
         />
-        
+
         <div className="sort-controls">
           <span>Sort by:</span>
-          <button 
+          <button
             className={`sort-btn ${sortBy === "name" ? "active" : ""}`}
             onClick={() => handleSortChange("name")}
           >
             Name {getSortIcon("name")}
           </button>
-          <button 
+          <button
             className={`sort-btn ${sortBy === "difficulty" ? "active" : ""}`}
             onClick={() => handleSortChange("difficulty")}
           >
             Difficulty {getSortIcon("difficulty")}
           </button>
-          <button 
+          <button
             className={`sort-btn ${sortBy === "conceptCount" ? "active" : ""}`}
             onClick={() => handleSortChange("conceptCount")}
           >
             Concepts {getSortIcon("conceptCount")}
           </button>
-          <button 
+          <button
             className={`sort-btn ${sortBy === "estimatedTime" ? "active" : ""}`}
             onClick={() => handleSortChange("estimatedTime")}
           >
@@ -200,8 +201,8 @@ export default function TopicList({ subjectId, onTopicSelect }) {
 
         <div className="topics-grid">
           {filteredAndSortedTopics.map((topic) => (
-            <div 
-              key={topic.id} 
+            <div
+              key={topic.id}
               className={`topic-card ${isTopicFavorited(topic.id) ? 'topic-card--favorited' : ''}`}
               onClick={(event) => handleTopicClick(topic, event)}
             >
@@ -211,30 +212,32 @@ export default function TopicList({ subjectId, onTopicSelect }) {
                   <span className={`difficulty ${topic.difficulty}`}>
                     {topic.difficulty}
                   </span>
-                  <FavoriteButton 
-                    itemId={topic.id} 
-                    itemType="topic" 
+                  <FavoriteButton
+                    itemId={topic.id}
+                    itemType="topic"
                     size="small"
                   />
                 </div>
               </div>
-              
+
               <p className="topic-description">{topic.description}</p>
-              
+
               <div className="topic-meta">
                 <span className="concept-count">
+                  <IoLibraryOutline aria-hidden="true" />
                   {topic.conceptCount} concepts
                 </span>
                 <span className="estimated-time">
+                  <IoTimeOutline aria-hidden="true" />
                   ~{topic.estimatedTime} min
                 </span>
                 {isTopicFavorited(topic.id) && (
                   <span className="favorite-indicator" title="Favorited">
-                    ⭐
+                    <IoStar aria-hidden="true" />
                   </span>
                 )}
               </div>
-              
+
               {topic.prerequisites && topic.prerequisites.length > 0 && (
                 <div className="prerequisites">
                   <small>Prerequisites: {topic.prerequisites.join(", ")}</small>
@@ -257,7 +260,7 @@ export default function TopicList({ subjectId, onTopicSelect }) {
           </div>
         )}
 
-      <style jsx>{`
+        <style jsx>{`
         .topic-list {
           padding: 1rem;
         }
@@ -409,17 +412,7 @@ export default function TopicList({ subjectId, onTopicSelect }) {
         .estimated-time {
           display: flex;
           align-items: center;
-          gap: 0.25rem;
-        }
-
-        .concept-count::before {
-          content: "📚";
-          font-size: 0.75rem;
-        }
-
-        .estimated-time::before {
-          content: "⏱️";
-          font-size: 0.75rem;
+          gap: 0.5rem;
         }
 
         .favorite-indicator {

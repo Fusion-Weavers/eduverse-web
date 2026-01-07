@@ -126,26 +126,58 @@ service cloud.firestore {
 
 ### 3. **Create First Admin User**
 
-#### Option A: During Registration (Recommended)
+Since admin accounts cannot be created through the signup form (for security reasons), you'll need to use one of the following methods:
 
-1. Go to the signup page (`/signup`)
-2. Fill in email and password
-3. Check the "Create as Admin Account" checkbox
-4. Click "Create Account"
-5. You'll be automatically logged in with admin privileges
+#### Option A: Direct Firestore Update (Recommended)
 
-#### Option B: Using Browser Console (for existing users)
+1. Create a regular user account through signup (`/signup`)
+2. Go to Firebase Console → Firestore Database
+3. Navigate to the `users` collection
+4. Find the user document you want to make admin
+5. Edit the document and change the `role` field from `"learner"` to `"admin"`
+6. Save the changes
+7. The user will have admin access on next login/refresh
 
-1. Login as the user you want to make admin
-2. Open browser developer console
-3. Run: `makeUserAdmin("user-uid-here")`
-4. Refresh the page
+#### Option B: Using Firebase Admin SDK (For Developers)
 
-#### Option C: Direct Firestore Update
+If you have access to Firebase Admin SDK, you can programmatically update user roles:
 
-1. Go to Firebase Console → Firestore
-2. Find the user document in `users` collection
-3. Add/update field: `role: "admin"`
+```javascript
+// Server-side code using Firebase Admin SDK
+const admin = require("firebase-admin");
+const db = admin.firestore();
+
+async function makeUserAdmin(userId) {
+  await db.collection("users").doc(userId).update({
+    role: "admin",
+  });
+  console.log(`User ${userId} is now an admin`);
+}
+```
+
+#### Option C: Manual Database Script
+
+Create a one-time script to set up your first admin user:
+
+```javascript
+// Run this in your development environment
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "./src/firebase";
+
+async function createFirstAdmin(userId) {
+  try {
+    await updateDoc(doc(db, "users", userId), {
+      role: "admin",
+    });
+    console.log("Admin user created successfully");
+  } catch (error) {
+    console.error("Error creating admin user:", error);
+  }
+}
+
+// Replace 'USER_ID_HERE' with the actual user ID
+createFirstAdmin("USER_ID_HERE");
+```
 
 ### 4. **Seed Initial Data**
 

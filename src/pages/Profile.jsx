@@ -1,29 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { IoCheckmarkCircleOutline, IoCloseCircleOutline, IoHourglassOutline, IoRefreshOutline, IoWarningOutline } from "react-icons/io5";
 import Navbar from "../components/Navbar";
 import LanguageSelector from "../components/LanguageSelector";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useContent } from "../context/ContentContext";
+import { getSubjectIcon } from "../utils/iconMap";
 
 export default function Profile() {
   const { user } = useAuth();
-  const { 
-    currentLanguage, 
-    getLanguageDisplayName, 
+  const {
+    currentLanguage,
+    getLanguageDisplayName,
     isGeminiAvailable,
-    translationError 
+    translationError
   } = useLanguage();
-  
+
   const {
     getFavoritesBySubject,
     getTotalFavoritesCount,
     syncStatus,
     getPendingActionsCount
   } = useFavorites();
-  
+
   const { subjects, topics, concepts } = useContent();
-  
+
   // User statistics state
   const [userStats, setUserStats] = useState({
     topicsViewed: 0,
@@ -60,7 +62,7 @@ export default function Profile() {
     } catch (error) {
       console.error('Error loading user statistics:', error);
     }
-    
+
     return {
       topicsViewed: 0,
       conceptsRead: 0,
@@ -105,7 +107,7 @@ export default function Profile() {
             <p><b>Email:</b> {user.email}</p>
             {user.displayName && <p><b>Name:</b> {user.displayName}</p>}
             <p><b>Role:</b> Learner</p>
-            <p><b>Member since:</b> {user.metadata?.creationTime ? 
+            <p><b>Member since:</b> {user.metadata?.creationTime ?
               new Date(user.metadata.creationTime).toLocaleDateString() : 'Unknown'}</p>
           </div>
 
@@ -135,8 +137,8 @@ export default function Profile() {
           {/* Language Preference */}
           <div className="profile-card">
             <h4>Language Preference</h4>
-            <LanguageSelector 
-              variant="dropdown" 
+            <LanguageSelector
+              variant="dropdown"
               showLabel={false}
             />
             <div className="language-status">
@@ -145,16 +147,16 @@ export default function Profile() {
               </p>
               {isGeminiAvailable ? (
                 <p className="hint">
-                  ✅ Content will be translated automatically using AI when needed.
+                  <IoCheckmarkCircleOutline aria-hidden="true" /> Content will be translated automatically using AI when needed.
                 </p>
               ) : (
                 <p className="hint">
-                  ⚠️ Only pre-translated content is available. Set VITE_GEMINI_API_KEY for AI translation.
+                  <IoWarningOutline aria-hidden="true" /> Only pre-translated content is available. Set VITE_GEMINI_API_KEY for AI translation.
                 </p>
               )}
               {translationError && (
                 <p className="hint" style={{ color: '#dc2626' }}>
-                  ❌ Translation error: {translationError}
+                  <IoCloseCircleOutline aria-hidden="true" /> Translation error: {translationError}
                 </p>
               )}
             </div>
@@ -165,18 +167,22 @@ export default function Profile() {
             <h4>Sync Status</h4>
             <div className="sync-status">
               {syncStatus === 'synced' && (
-                <p className="hint">✅ All data synchronized</p>
+                <p className="hint">
+                  <IoCheckmarkCircleOutline aria-hidden="true" /> All data synchronized
+                </p>
               )}
               {syncStatus === 'syncing' && (
-                <p className="hint">🔄 Synchronizing data...</p>
+                <p className="hint">
+                  <IoRefreshOutline aria-hidden="true" /> Synchronizing data...
+                </p>
               )}
               {syncStatus === 'pending' && (
                 <p className="hint">
-                  ⏳ {getPendingActionsCount()} actions pending sync
+                  <IoHourglassOutline aria-hidden="true" /> {getPendingActionsCount()} actions pending sync
                 </p>
               )}
             </div>
-            <button 
+            <button
               className="retry-btn"
               onClick={() => {
                 // Clear translation cache
@@ -201,11 +207,16 @@ export default function Profile() {
             <div className="favorites-by-subject">
               {Object.entries(favoritesBySubject).map(([subjectId, subjectData]) => (
                 <div key={subjectId} className="subject-favorites">
-                  <h4 className="subject-title">
-                    <span className="subject-icon">{subjectData.subject.icon}</span>
-                    {subjectData.subject.name}
-                  </h4>
-                  
+                  {(() => {
+                    const SubjectIcon = getSubjectIcon(subjectData.subject.icon);
+                    return (
+                      <h4 className="subject-title">
+                        <span className="subject-icon" aria-hidden="true"><SubjectIcon /></span>
+                        {subjectData.subject.name}
+                      </h4>
+                    );
+                  })()}
+
                   {/* Favorite Topics */}
                   {subjectData.topics.length > 0 && (
                     <div className="favorite-topics">
@@ -213,7 +224,7 @@ export default function Profile() {
                       <div className="favorite-items">
                         {subjectData.topics.map(topic => (
                           <div key={topic.id} className="favorite-item">
-                            <a 
+                            <a
                               href={`/subjects/${topic.subjectId}?topic=${topic.id}`}
                               className="favorite-link"
                             >
@@ -237,7 +248,7 @@ export default function Profile() {
                       <div className="favorite-items">
                         {subjectData.concepts.map(concept => (
                           <div key={concept.id} className="favorite-item">
-                            <a 
+                            <a
                               href={`/concept/${concept.id}`}
                               className="favorite-link"
                             >

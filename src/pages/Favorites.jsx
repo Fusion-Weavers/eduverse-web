@@ -1,20 +1,22 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { IoCloudUploadOutline, IoGlassesOutline, IoHeartOutline, IoHourglassOutline } from "react-icons/io5";
 import Navbar from "../components/Navbar";
 import FavoriteButton from "../components/FavoriteButton";
 import { useFavorites } from "../context/FavoritesContext";
 import { useContent } from "../context/ContentContext";
+import { getSubjectIcon } from "../utils/iconMap";
 
 export default function Favorites() {
   const { subjects, topics, concepts } = useContent();
-  const { 
-    getFavoritesBySubject, 
-    getTotalFavoritesCount, 
+  const {
+    getFavoritesBySubject,
+    getTotalFavoritesCount,
     clearAllFavorites,
     syncStatus,
     getPendingActionsCount
   } = useFavorites();
-  
+
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Calculate favorites by subject using useMemo to avoid setState in effect
@@ -39,29 +41,31 @@ export default function Favorites() {
     if (syncStatus === 'syncing') {
       return (
         <div className="sync-status syncing">
-          <span>⏳</span> Syncing favorites...
+          <span aria-hidden="true"><IoHourglassOutline /></span> Syncing favorites...
         </div>
       );
     }
-    
+
     if (syncStatus === 'pending' && pendingCount > 0) {
       return (
         <div className="sync-status pending">
-          <span>📤</span> {pendingCount} change{pendingCount !== 1 ? 's' : ''} pending sync
+          <span aria-hidden="true"><IoCloudUploadOutline /></span> {pendingCount} change{pendingCount !== 1 ? 's' : ''} pending sync
         </div>
       );
     }
-    
+
     return null;
   };
 
   // Render empty state
   const renderEmptyState = () => (
     <div className="empty-state">
-      <div className="empty-state__icon">🤍</div>
+      <div className="empty-state__icon" aria-hidden="true">
+        <IoHeartOutline />
+      </div>
       <h3>No favorites yet</h3>
       <p>
-        Start exploring STEM concepts and topics. Use the heart button to save 
+        Start exploring STEM concepts and topics. Use the heart button to save
         your favorite content for easy access later.
       </p>
       <Link to="/subjects" className="btn btn-primary">
@@ -73,12 +77,13 @@ export default function Favorites() {
   // Render subject section
   const renderSubjectSection = (subjectId, subjectData) => {
     const { subject, topics: favoriteTopics, concepts: favoriteConcepts } = subjectData;
-    
+    const SubjectIcon = getSubjectIcon(subject.icon);
+
     return (
       <div key={subjectId} className="favorites-subject">
         <div className="favorites-subject__header">
           <h3>
-            <span className="subject-icon">{subject.icon}</span>
+            <span className="subject-icon" aria-hidden="true"><SubjectIcon /></span>
             {subject.name}
           </h3>
           <span className="favorites-count">
@@ -93,21 +98,21 @@ export default function Favorites() {
               {favoriteTopics.map(topic => (
                 <div key={topic.id} className="favorite-item topic-item">
                   <div className="favorite-item__header">
-                    <Link 
+                    <Link
                       to={`/subjects/${subject.id}/${topic.id}`}
                       className="favorite-item__title"
                     >
                       {topic.name}
                     </Link>
-                    <FavoriteButton 
-                      itemId={topic.id} 
-                      itemType="topic" 
+                    <FavoriteButton
+                      itemId={topic.id}
+                      itemType="topic"
                       size="small"
                     />
                   </div>
                   <p className="favorite-item__description">{topic.description}</p>
                   <div className="favorite-item__meta">
-                    <span className="difficulty difficulty--{topic.difficulty}">
+                    <span className={`difficulty difficulty--${topic.difficulty}`}>
                       {topic.difficulty}
                     </span>
                     <span className="concept-count">
@@ -130,15 +135,15 @@ export default function Favorites() {
               {favoriteConcepts.map(concept => (
                 <div key={concept.id} className="favorite-item concept-item">
                   <div className="favorite-item__header">
-                    <Link 
+                    <Link
                       to={`/subjects/${subject.id}/${concept.topicId}/${concept.id}`}
                       className="favorite-item__title"
                     >
                       {concept.title}
                     </Link>
-                    <FavoriteButton 
-                      itemId={concept.id} 
-                      itemType="concept" 
+                    <FavoriteButton
+                      itemId={concept.id}
+                      itemType="concept"
                       size="small"
                     />
                   </div>
@@ -148,7 +153,7 @@ export default function Favorites() {
                     </Link>
                   </p>
                   <div className="favorite-item__meta">
-                    <span className="difficulty difficulty--{concept.difficulty}">
+                    <span className={`difficulty difficulty--${concept.difficulty}`}>
                       {concept.difficulty}
                     </span>
                     <span className="read-time">
@@ -156,7 +161,7 @@ export default function Favorites() {
                     </span>
                     {concept.arEnabled && (
                       <span className="ar-indicator" title="AR content available">
-                        🥽 AR
+                        <IoGlassesOutline aria-hidden="true" /> AR
                       </span>
                     )}
                   </div>
@@ -180,7 +185,7 @@ export default function Favorites() {
               <span className="total-count">
                 {totalFavorites} total favorite{totalFavorites !== 1 ? 's' : ''}
               </span>
-              <button 
+              <button
                 className="btn btn-outline btn-sm"
                 onClick={() => setShowClearConfirm(true)}
               >
@@ -196,7 +201,7 @@ export default function Favorites() {
           renderEmptyState()
         ) : (
           <div className="favorites-content">
-            {Object.keys(favoritesBySubject).map(subjectId => 
+            {Object.keys(favoritesBySubject).map(subjectId =>
               renderSubjectSection(subjectId, favoritesBySubject[subjectId])
             )}
           </div>
@@ -208,17 +213,17 @@ export default function Favorites() {
             <div className="modal" onClick={e => e.stopPropagation()}>
               <h3>Clear All Favorites?</h3>
               <p>
-                This will remove all {totalFavorites} favorite{totalFavorites !== 1 ? 's' : ''} from your account. 
+                This will remove all {totalFavorites} favorite{totalFavorites !== 1 ? 's' : ''} from your account.
                 This action cannot be undone.
               </p>
               <div className="modal-actions">
-                <button 
+                <button
                   className="btn btn-outline"
                   onClick={() => setShowClearConfirm(false)}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className="btn btn-danger"
                   onClick={handleClearAll}
                 >
@@ -411,14 +416,20 @@ export default function Favorites() {
           display: flex;
           gap: 0.75rem;
           flex-wrap: wrap;
+          align-items: center;
           font-size: 0.75rem;
         }
 
         .difficulty {
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.25rem;
-          font-weight: 500;
-          text-transform: capitalize;
+          padding: 0.25rem 0.75rem;
+          border-radius: 1rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+          flex-shrink: 0;
+          display: inline-block;
         }
 
         .difficulty--beginner {

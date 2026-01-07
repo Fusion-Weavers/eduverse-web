@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { IoHeart, IoHeartOutline, IoHourglassOutline, IoCloudUploadOutline } from "react-icons/io5";
 import { useFavorites } from "../context/FavoritesContext";
 import "./FavoriteButton.css";
 
-const FavoriteButton = ({ 
-  itemId, 
+const FavoriteButton = ({
+  itemId,
   itemType, // 'topic' or 'concept'
   size = 'medium', // 'small', 'medium', 'large'
   showLabel = false,
@@ -11,18 +12,18 @@ const FavoriteButton = ({
   disabled = false,
   onToggle = null // Optional callback when favorite status changes
 }) => {
-  const { 
-    isTopicFavorited, 
-    isConceptFavorited, 
-    toggleTopicFavorite, 
+  const {
+    isTopicFavorited,
+    isConceptFavorited,
+    toggleTopicFavorite,
     toggleConceptFavorite,
-    syncStatus 
+    syncStatus
   } = useFavorites();
-  
+
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Determine if item is favorited based on type
-  const isFavorited = itemType === 'topic' 
+  const isFavorited = itemType === 'topic'
     ? isTopicFavorited(itemId)
     : isConceptFavorited(itemId);
 
@@ -35,7 +36,7 @@ const FavoriteButton = ({
 
     // Start animation
     setIsAnimating(true);
-    
+
     try {
       let newStatus;
       if (itemType === 'topic') {
@@ -67,11 +68,11 @@ const FavoriteButton = ({
   ].filter(Boolean).join(' ');
 
   // Determine icon based on favorite status
-  const icon = isFavorited ? '❤️' : '🤍';
-  
+  const icon = isFavorited ? <IoHeart aria-hidden="true" /> : <IoHeartOutline aria-hidden="true" />;
+
   // Determine label text
-  const labelText = isFavorited 
-    ? `Remove from favorites` 
+  const labelText = isFavorited
+    ? `Remove from favorites`
     : `Add to favorites`;
 
   // Show sync status indicator if there are pending changes
@@ -89,20 +90,24 @@ const FavoriteButton = ({
       <span className="favorite-button__icon" role="img" aria-hidden="true">
         {icon}
       </span>
-      
+
       {showLabel && (
         <span className="favorite-button__label">
           {isFavorited ? 'Favorited' : 'Favorite'}
         </span>
       )}
-      
+
       {showSyncIndicator && (
-        <span 
-          className="favorite-button__sync-indicator" 
+        <span
+          className="favorite-button__sync-indicator"
           title={syncStatus === 'syncing' ? 'Syncing...' : 'Pending sync'}
           aria-label={syncStatus === 'syncing' ? 'Syncing favorites' : 'Favorites pending sync'}
         >
-          {syncStatus === 'syncing' ? '⏳' : '📤'}
+          {syncStatus === 'syncing' ? (
+            <IoHourglassOutline aria-hidden="true" />
+          ) : (
+            <IoCloudUploadOutline aria-hidden="true" />
+          )}
         </span>
       )}
     </button>

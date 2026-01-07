@@ -3,14 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAwqq-7fryFWA1N1yr1axgzdU4lJ-kt65s",
-  authDomain: "eduverse-71620.firebaseapp.com",
-  projectId: "eduverse-71620",
-  storageBucket: "eduverse-71620.firebasestorage.app",
-  messagingSenderId: "176189402492",
-  appId: "1:176189402492:web:bf34e2a366549e4fb448f9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
-
 
 const app = initializeApp(firebaseConfig);
 

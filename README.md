@@ -1,16 +1,77 @@
-# React + Vite
+# Eduverse - Multilingual STEM Learning Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web application designed to help rural and non-English students understand complex STEM concepts through localized language explanations. The platform provides structured browsing of subjects and topics, search functionality, multilingual content support, and user personalization features.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Subject Organization**: Browse STEM content organized by Engineering, Physics, Biology, and Chemistry
+- **Multilingual Support**: Access content in multiple languages with persistent language preferences
+- **Search & Discovery**: Find specific concepts and topics with advanced filtering
+- **Favorites System**: Save and organize favorite topics and concepts
+- **User Profiles**: Manage preferences and track learning progress
+- **Offline Reading**: Access previously viewed content without internet connectivity
+- **Responsive Design**: Optimized for various device sizes
 
-## React Compiler
+## Environment Setup
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+### Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js (v16 or higher)
+- npm or yarn package manager
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Configure your environment variables in `.env`:
+   - **VITE_GEMINI_API_KEY**: Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - **Firebase Configuration**: Get these values from your Firebase project settings
+     - VITE_FIREBASE_API_KEY
+     - VITE_FIREBASE_AUTH_DOMAIN
+     - VITE_FIREBASE_PROJECT_ID
+     - VITE_FIREBASE_STORAGE_BUCKET
+     - VITE_FIREBASE_MESSAGING_SENDER_ID
+     - VITE_FIREBASE_APP_ID
+
+### Development
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+### Build
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+## Security Notes
+
+- Never commit your `.env` file to version control
+- The `.env.example` file shows the required environment variables without sensitive values
+- Firebase configuration values are safe for client-side use but should still be organized properly
+- Keep your Gemini API key secure and rotate it if compromised
+
+## Technology Stack
+
+- **Frontend**: React + Vite
+- **Authentication**: Firebase Auth
+- **Database**: Firebase Firestore
+- **AI Integration**: Google Gemini API
+- **Styling**: CSS with responsive design
+- **State Management**: React Context API

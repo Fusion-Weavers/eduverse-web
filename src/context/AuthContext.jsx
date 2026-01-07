@@ -18,8 +18,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => signOut(auth);
 
+  const isAuthenticated = !!user;
+  const isEmailVerified = user?.emailVerified || false;
+
   return (
-    <AuthContext.Provider value={{ user, logout }}>
+    <AuthContext.Provider value={{ user, logout, isAuthenticated, isEmailVerified, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

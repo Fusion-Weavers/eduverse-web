@@ -5,42 +5,85 @@ import Home from "./pages/Home";
 import Subjects from "./pages/Subjects";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
+import Search from "./pages/Search";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
+import { ContentProvider } from "./context/ContentContext";
+import { SearchProvider } from "./context/SearchContext";
+import { LanguageProvider } from "./context/LanguageContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
+import { NavigationProvider } from "./context/NavigationContext";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <NavigationProvider>
+            <LanguageProvider>
+              <ContentProvider>
+                <FavoritesProvider>
+                  <SearchProvider>
+                    <Routes>
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
 
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } />
+                      <Route path="/" element={
+                        <ProtectedRoute>
+                          <Home />
+                        </ProtectedRoute>
+                      } />
 
-          <Route path="/subjects" element={
-            <ProtectedRoute>
-              <Subjects />
-            </ProtectedRoute>
-          } />
+                      <Route path="/search" element={
+                        <ProtectedRoute>
+                          <Search />
+                        </ProtectedRoute>
+                      } />
 
-          <Route path="/favorites" element={
-            <ProtectedRoute>
-              <Favorites />
-            </ProtectedRoute>
-          } />
+                      <Route path="/subjects" element={
+                        <ProtectedRoute>
+                          <Subjects />
+                        </ProtectedRoute>
+                      } />
 
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+                      <Route path="/subjects/:subjectId" element={
+                        <ProtectedRoute>
+                          <Subjects />
+                        </ProtectedRoute>
+                      } />
+
+                      <Route path="/subjects/:subjectId/:topicId" element={
+                        <ProtectedRoute>
+                          <Subjects />
+                        </ProtectedRoute>
+                      } />
+
+                      <Route path="/subjects/:subjectId/:topicId/:conceptId" element={
+                        <ProtectedRoute>
+                          <Subjects />
+                        </ProtectedRoute>
+                      } />
+
+                      <Route path="/favorites" element={
+                        <ProtectedRoute>
+                          <Favorites />
+                        </ProtectedRoute>
+                      } />
+
+                      <Route path="/profile" element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      } />
+                    </Routes>
+                  </SearchProvider>
+                </FavoritesProvider>
+              </ContentProvider>
+            </LanguageProvider>
+          </NavigationProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

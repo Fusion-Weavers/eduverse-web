@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
+import LanguageSelector from "./LanguageSelector";
 
 export default function Navbar() {
   const { logout } = useAuth();
@@ -21,6 +22,7 @@ export default function Navbar() {
         <Link to="/subjects" onClick={() => setOpen(false)}>Subjects</Link>
         <Link to="/favorites" onClick={() => setOpen(false)}>Favorites</Link>
         <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
+        <LanguageSelector variant="compact" showLabel={false} />
         <button onClick={handleLogout}>Logout</button>
       </div>
 

@@ -180,23 +180,38 @@ export default function Home() {
               </p>
               <div className="app-badges">
                 <div className="qr-placeholder">
-                  <div className="qr-box">
-                    <span>QR Code</span>
-                    <p>Scan to download</p>
-                  </div>
+                  <a
+                    className="qr-box"
+                    href="/image.png"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open QR code to download the Eduverse app"
+                  >
+                    <img
+                      className="qr-image"
+                      src="/image.png"
+                      alt="QR code linking to the Eduverse app download"
+                    />
+                    <span className="qr-caption">Scan to download</span>
+                  </a>
                 </div>
                 <div className="store-info">
-                  <p>Available on iOS and Android</p>
-                  <div className="coming-soon-badge">Coming Soon</div>
+                  <p>Available on Android</p>
+                  <a 
+                    href="https://q.me-qr.com/spc1s2v7" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="download-btn"
+                  >
+                    Download on Mobile
+                  </a>
                 </div>
               </div>
             </div>
             <div className="mobile-mockup">
               <div className="phone-frame">
                 <div className="phone-screen">
-                  <div className="screen-content">
-                    <div className="app-preview">📱</div>
-                  </div>
+                  <img src="/app.jpeg" alt="Eduverse Mobile App Screenshot" className="app-screenshot" />
                 </div>
               </div>
             </div>

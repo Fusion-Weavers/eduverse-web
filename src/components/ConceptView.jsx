@@ -23,6 +23,7 @@ import FavoriteButton from "./FavoriteButton";
 import LoadingSpinner from "./LoadingSpinner";
 import ErrorBoundary from "./ErrorBoundary";
 import ErrorState from "./ErrorState";
+import WebXRViewer from "./WebXRViewer";
 
 export default function ConceptView({ topicId, conceptId, onBack }) {
   const navigate = useNavigate();
@@ -346,10 +347,18 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
             </div>
             <div className="concept-list">
               {concepts.map((concept) => (
-                <button
+                <div
                   key={concept.id}
                   className={`concept-item ${selectedConcept?.id === concept.id ? 'active' : ''} ${isConceptFavorited(concept.id) ? 'favorited' : ''}`}
                   onClick={() => handleConceptSelect(concept)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleConceptSelect(concept);
+                    }
+                  }}
                 >
                   <div className="concept-item-header">
                     <div className="concept-item-title">{concept.title}</div>
@@ -372,7 +381,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                       </span>
                     )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -569,14 +578,22 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                     </div>
                   )}
 
-                  {/* AR/3D Visualization indicator */}
-                  {selectedConcept.arEnabled && (
+                  {/* AR/3D Visualization */}
+                  {selectedConcept.arEnabled && selectedConcept.modelUrl && (
+                    <WebXRViewer
+                      modelUrl={selectedConcept.modelUrl}
+                      title={`3D Model: ${selectedConcept.title}`}
+                    />
+                  )}
+
+                  {/* AR/3D Visualization indicator for concepts without modelUrl */}
+                  {selectedConcept.arEnabled && !selectedConcept.modelUrl && (
                     <div className="ar-indicator">
                       <div className="ar-badge">
                         <span className="ar-icon" aria-hidden="true"><IoGlassesOutline /></span>
                         <div className="ar-text">
-                          <strong>AR Enhanced</strong>
-                          <p>This concept supports 3D visualization (coming in Phase 2)</p>
+                          <strong>3D Model Coming Soon</strong>
+                          <p>This concept will support 3D visualization</p>
                         </div>
                       </div>
                     </div>

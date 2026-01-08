@@ -6,6 +6,7 @@ import Subjects from "./pages/Subjects";
 import Favorites from "./pages/Favorites";
 import Profile from "./pages/Profile";
 import Search from "./pages/Search";
+import ARConcepts from "./pages/ARConcepts";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -31,11 +32,8 @@ export default function App() {
                       <Route path="/login" element={<Login />} />
                       <Route path="/signup" element={<Signup />} />
 
-                      <Route path="/" element={
-                        <ProtectedRoute>
-                          <Home />
-                        </ProtectedRoute>
-                      } />
+                      <Route path="/" element={<Home />} />
+                      <Route path="/ar" element={<ARConcepts />} />
 
                       <Route path="/search" element={
                         <ProtectedRoute>

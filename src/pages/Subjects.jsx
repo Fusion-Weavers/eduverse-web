@@ -91,17 +91,8 @@ export default function Subjects() {
             <button onClick={goBack} className="back-btn">
               ← Back
             </button>
-            <div className="subject-info">
-              <div className="subject-title">
-                <span className="subject-icon" aria-hidden="true">
-                  <SubjectIcon />
-                </span>
-                <h2>{subject.name}</h2>
-              </div>
-              <p>{subject.description}</p>
-            </div>
+            <TopicList subjectId={subjectId} />
           </div>
-          <TopicList subjectId={subjectId} />
         </div>
       </ErrorBoundary>
     );

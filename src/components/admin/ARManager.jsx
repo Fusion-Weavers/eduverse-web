@@ -35,19 +35,69 @@ export default function ARManager() {
   };
 
   const handleARToggle = async (conceptId, currentStatus) => {
+    const previousConcept = concepts.find((concept) => concept.id === conceptId);
+    const nextStatus = !currentStatus;
+
+    // Optimistically update local state to avoid full reload/spinner
+    setConcepts((prevConcepts) =>
+      prevConcepts.map((concept) =>
+        concept.id === conceptId
+          ? {
+            ...concept,
+            arEnabled: nextStatus,
+            // Clear visualization type when AR is disabled so UI stays in sync
+            visualizationType: nextStatus ? concept.visualizationType : null,
+          }
+          : concept
+      )
+    );
+
     try {
-      await conceptService.updateARAvailability(conceptId, !currentStatus);
-      await loadData();
+      await conceptService.updateARAvailability(
+        conceptId,
+        nextStatus,
+        nextStatus ? previousConcept?.visualizationType ?? null : null
+      );
     } catch (err) {
+      // Revert on failure
+      setConcepts((prevConcepts) =>
+        prevConcepts.map((concept) =>
+          concept.id === conceptId
+            ? { ...concept, arEnabled: currentStatus, visualizationType: previousConcept?.visualizationType ?? null }
+            : concept
+        )
+      );
       setError("Failed to update AR status: " + err.message);
     }
   };
 
   const handleVisualizationTypeChange = async (conceptId, visualizationType) => {
+    const previousConcept = concepts.find((concept) => concept.id === conceptId);
+
+    // Optimistic UI update keeps the list responsive
+    setConcepts((prevConcepts) =>
+      prevConcepts.map((concept) =>
+        concept.id === conceptId
+          ? { ...concept, visualizationType, arEnabled: true }
+          : concept
+      )
+    );
+
     try {
       await conceptService.updateARAvailability(conceptId, true, visualizationType);
-      await loadData();
     } catch (err) {
+      // Revert to previous state on failure
+      setConcepts((prevConcepts) =>
+        prevConcepts.map((concept) =>
+          concept.id === conceptId
+            ? {
+              ...concept,
+              visualizationType: previousConcept?.visualizationType ?? null,
+              arEnabled: previousConcept?.arEnabled ?? false,
+            }
+            : concept
+        )
+      );
       setError("Failed to update visualization type: " + err.message);
     }
   };
@@ -68,13 +118,13 @@ export default function ARManager() {
     // Filter by AR status
     if (filter === "ar-enabled" && !concept.arEnabled) return false;
     if (filter === "ar-disabled" && concept.arEnabled) return false;
-    
+
     // Filter by subject
     if (selectedSubject) {
       const topic = topics.find(t => t.id === concept.topicId);
       if (!topic || topic.subjectId !== selectedSubject) return false;
     }
-    
+
     return true;
   });
 

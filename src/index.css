@@ -1430,6 +1430,9 @@ body {
 .no-results p {
   color: #666666;
   margin-bottom: 40px;
+  margin: 0 auto 1.5rem auto;
+  text-align: center;
+  width: 100%;
 }
 
 .no-results-suggestions {

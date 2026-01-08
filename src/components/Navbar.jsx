@@ -10,15 +10,16 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate("/");
   };
 
   return (
     <nav className="navbar">
-      <h3 className="logo">Eduverse</h3>
+      <Link to="/" className="logo">Eduverse</Link>
 
       <div className={`nav-links ${open ? "open" : ""}`}>
         <Link to="/" onClick={() => setOpen(false)}>Home</Link>
+        <Link to="/ar" onClick={() => setOpen(false)}>3D Concepts</Link>
         <Link to="/subjects" onClick={() => setOpen(false)}>Subjects</Link>
         <Link to="/favorites" onClick={() => setOpen(false)}>Favorites</Link>
         <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>

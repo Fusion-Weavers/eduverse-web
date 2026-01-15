@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import SearchBar from "../components/SearchBar";
+import { FiBook, FiBox, FiStar, FiUser } from "react-icons/fi";
 import "./Home.css";
 
 export default function Home() {
@@ -32,24 +33,89 @@ export default function Home() {
       <>
         <Navbar />
         <div className="page">
-          <h1>Welcome to Eduverse</h1>
-          <p>
-            Learn STEM concepts in your preferred language with structured,
-            easy-to-understand explanations.
-          </p>
+          {/* Welcome Section */}
+          <div className="home-welcome">
+            <h1>Welcome back, {user.displayName || 'Learner'}!</h1>
+            <p>Continue your STEM learning journey with interactive 3D concepts</p>
+          </div>
 
-          {/* Prominent search interface */}
+          {/* Search Section */}
           <div className="home-search-section">
-            <h2>Find What You're Looking For</h2>
+            <h2>Search & Explore</h2>
             <SearchBar placeholder="Search subjects, topics, and concepts..." />
           </div>
 
-          <div className="card">
-            <h3>Get Started</h3>
-            <p>
-              Browse subjects, explore topics, and save your favorite concepts
-              for quick revision.
-            </p>
+          {/* Quick Shortcuts */}
+          <div className="home-shortcuts-section">
+            <h2>Quick Access</h2>
+            <div className="shortcuts-grid">
+              <div
+                className="shortcut-card"
+                onClick={() => navigate('/subjects')}
+              >
+                <div className="shortcut-icon">
+                  <FiBook size={24} />
+                </div>
+                <h3>Subjects</h3>
+              </div>
+
+              <div
+                className="shortcut-card"
+                onClick={() => navigate('/ar')}
+              >
+                <div className="shortcut-icon">
+                  <FiBox size={24} />
+                </div>
+                <h3>3D Models</h3>
+              </div>
+
+              <div
+                className="shortcut-card"
+                onClick={() => navigate('/favorites')}
+              >
+                <div className="shortcut-icon">
+                  <FiStar size={24} />
+                </div>
+                <h3>Favorites</h3>
+              </div>
+
+              <div
+                className="shortcut-card"
+                onClick={() => navigate('/profile')}
+              >
+                <div className="shortcut-icon">
+                  <FiUser size={24} />
+                </div>
+                <h3>Profile</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Featured Content */}
+          <div className="home-featured-section">
+            <h2>Featured Topics</h2>
+            <div className="featured-cards">
+              <div className="featured-card">
+                <div className="featured-badge">Popular</div>
+                <h3>Physics Fundamentals</h3>
+                <p>Master the core concepts of motion, energy, and forces with interactive visualizations.</p>
+                <button className="featured-btn" onClick={() => navigate('/subjects')}>Explore</button>
+              </div>
+
+              <div className="featured-card">
+                <div className="featured-badge">New</div>
+                <h3>Biology in 3D</h3>
+                <p>Explore human anatomy and biological systems with immersive 3D models.</p>
+                <button className="featured-btn" onClick={() => navigate('/ar')}>View Models</button>
+              </div>
+
+              <div className="featured-card">
+                <div className="featured-badge">Trending</div>
+                <h3>Chemistry Reactions</h3>
+                <p>Understand atomic structures and chemical reactions through interactive models.</p>
+                <button className="featured-btn" onClick={() => navigate('/subjects')}>Learn More</button>
+              </div>
+            </div>
           </div>
         </div>
       </>
@@ -197,9 +263,9 @@ export default function Home() {
                 </div>
                 <div className="store-info">
                   <p>Available on Android</p>
-                  <a 
-                    href="https://q.me-qr.com/spc1s2v7" 
-                    target="_blank" 
+                  <a
+                    href="https://q.me-qr.com/spc1s2v7"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="download-btn"
                   >

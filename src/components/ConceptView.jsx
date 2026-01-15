@@ -43,6 +43,16 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   const [contentLoading, setContentLoading] = useState(false);
   const [contentError, setContentError] = useState(null);
 
+  // Derive a clean embed URL (handles full iframe snippets saved from Sketchfab)
+  const getEmbedUrl = (raw) => {
+    if (!raw) return null;
+    if (raw.includes('<iframe')) {
+      const match = raw.match(/src="([^"]+)"/i);
+      return match ? match[1] : null;
+    }
+    return raw;
+  };
+
   const concepts = getConceptsByTopic(topicId);
   const topic = topics.find(t => t.id === topicId);
   const subject = subjects.find(s => s.id === topic?.subjectId);
@@ -579,15 +589,16 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                   )}
 
                   {/* AR/3D Visualization */}
-                  {selectedConcept.arEnabled && selectedConcept.modelUrl && (
+                  {selectedConcept.arEnabled && (selectedConcept.modelUrl || selectedConcept.embedUrl) && (
                     <WebXRViewer
                       modelUrl={selectedConcept.modelUrl}
+                      embedUrl={getEmbedUrl(selectedConcept.embedUrl)}
                       title={`3D Model: ${selectedConcept.title}`}
                     />
                   )}
 
-                  {/* AR/3D Visualization indicator for concepts without modelUrl */}
-                  {selectedConcept.arEnabled && !selectedConcept.modelUrl && (
+                  {/* AR/3D Visualization indicator for concepts without modelUrl/embedUrl */}
+                  {selectedConcept.arEnabled && !selectedConcept.modelUrl && !selectedConcept.embedUrl && (
                     <div className="ar-indicator">
                       <div className="ar-badge">
                         <span className="ar-icon" aria-hidden="true"><IoGlassesOutline /></span>

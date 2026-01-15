@@ -31,9 +31,10 @@ export const ContentProvider = ({ children }) => {
       setSubjects(subjectsData);
       setTopics(topicsData);
       setConcepts(conceptsData);
+      setError(null);
     } catch (err) {
       console.error("Error loading content:", err);
-      setError("Failed to load content. Please try again.");
+      setError({ message: err.message || "Failed to load content. Please try again." });
     } finally {
       setLoading(false);
     }

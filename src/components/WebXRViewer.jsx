@@ -115,16 +115,24 @@ function Loader() {
 }
 
 // Main WebXR Viewer component
-export default function WebXRViewer({ modelUrl, title }) {
+export default function WebXRViewer({ modelUrl, embedUrl, title }) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [modelError, setModelError] = useState(null);
     const [modelLoaded, setModelLoaded] = useState(false);
     const [isXRSupported, setIsXRSupported] = useState(false);
     const [isValidating, setIsValidating] = useState(true);
+    const [embedKey, setEmbedKey] = useState(0);
     const containerRef = useRef();
 
     // Validate model URL on mount
     useEffect(() => {
+        // Skip validation when using embedded viewers
+        if (embedUrl) {
+            setIsValidating(false);
+            setModelError(null);
+            return;
+        }
+
         if (!modelUrl) {
             setIsValidating(false);
             return;
@@ -146,7 +154,7 @@ export default function WebXRViewer({ modelUrl, title }) {
                 setModelError(`Cannot access model file. This could be due to:\n• The file doesn't exist at the specified URL\n• CORS (Cross-Origin) restrictions\n• Network connectivity issues\n\nURL: ${modelUrl}`);
                 setIsValidating(false);
             });
-    }, [modelUrl]);
+    }, [modelUrl, embedUrl]);
 
     useEffect(() => {
         // Check if WebXR is supported
@@ -181,6 +189,14 @@ export default function WebXRViewer({ modelUrl, title }) {
 
     const handleReset = () => {
         setModelError(null);
+
+        // For embeds, just force a reload of the iframe
+        if (embedUrl) {
+            setEmbedKey((k) => k + 1);
+            setIsValidating(false);
+            return;
+        }
+
         setModelLoaded(false);
         setIsValidating(false);
         // Force re-validation
@@ -238,6 +254,136 @@ export default function WebXRViewer({ modelUrl, title }) {
         };
     }, []);
 
+    // Render Sketchfab or other embedded viewers when provided
+    if (embedUrl) {
+        return (
+            <div ref={containerRef} className="webxr-viewer-container embed">
+                <div className="viewer-header">
+                    <h4>{title || '3D Model Viewer'}</h4>
+                    <div className="viewer-controls">
+                        <button onClick={handleReset} className="control-button" title="Reload embed">
+                            <IoRefreshOutline /> Reload
+                        </button>
+                        <a
+                            className="control-button"
+                            href={embedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Open on Sketchfab"
+                        >
+                            <IoExpand /> Open
+                        </a>
+                    </div>
+                </div>
+
+                <div className="embed-frame">
+                    <iframe
+                        key={embedKey}
+                        title={title || '3D Model Embed'}
+                        src={embedUrl}
+                        frameBorder="0"
+                        allow="autoplay; fullscreen; xr-spatial-tracking"
+                        allowFullScreen
+                        mozallowfullscreen="true"
+                        webkitallowfullscreen="true"
+                    />
+                </div>
+
+                <div className="viewer-instructions">
+                    <p>
+                        <strong>Controls:</strong>
+                        Use Sketchfab controls inside the frame • Click Open for a full page view
+                    </p>
+                </div>
+
+                <style jsx>{`
+                    .webxr-viewer-container.embed {
+                        background: #fff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        margin: 1.5rem 0;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .viewer-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 1rem 1.5rem;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }
+
+                    .viewer-header h4 {
+                        margin: 0;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                    }
+
+                    .viewer-controls {
+                        display: flex;
+                        gap: 0.5rem;
+                    }
+
+                    .control-button {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        padding: 0.5rem 0.75rem;
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                        transition: all 0.2s;
+                        backdrop-filter: blur(10px);
+                        text-decoration: none;
+                    }
+
+                    .control-button:hover {
+                        background: rgba(255, 255, 255, 0.3);
+                        transform: translateY(-1px);
+                    }
+
+                    .embed-frame {
+                        position: relative;
+                        width: 100%;
+                        padding-top: 56.25%;
+                        background: #f5f5f5;
+                    }
+
+                    .embed-frame iframe {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        border: 0;
+                    }
+
+                    .viewer-instructions {
+                        padding: 1rem 1.5rem;
+                        background: #f8f9fa;
+                        border-top: 1px solid #e2e8f0;
+                    }
+
+                    .viewer-instructions p {
+                        margin: 0;
+                        font-size: 0.875rem;
+                        color: #6c757d;
+                        text-align: center;
+                    }
+
+                    .viewer-instructions strong {
+                        color: #495057;
+                    }
+                `}</style>
+            </div>
+        );
+    }
+
     if (!modelUrl) {
         return (
             <div className="webxr-viewer-container no-model">
@@ -246,25 +392,25 @@ export default function WebXRViewer({ modelUrl, title }) {
                     <p>No 3D model available for this concept</p>
                 </div>
                 <style jsx>{`
-          .webxr-viewer-container.no-model {
-            background: #f8f9fa;
-            border: 2px dashed #dee2e6;
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-          }
-          .no-model-message {
-            color: #6c757d;
-          }
-          .no-model-message svg {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-          }
-          .no-model-message p {
-            margin: 0;
-            font-size: 1rem;
-          }
-        `}</style>
+                    .webxr-viewer-container.no-model {
+                        background: #f8f9fa;
+                        border: 2px dashed #dee2e6;
+                        border-radius: 12px;
+                        padding: 3rem;
+                        text-align: center;
+                    }
+                    .no-model-message {
+                        color: #6c757d;
+                    }
+                    .no-model-message svg {
+                        font-size: 3rem;
+                        margin-bottom: 1rem;
+                    }
+                    .no-model-message p {
+                        margin: 0;
+                        font-size: 1rem;
+                    }
+                `}</style>
             </div>
         );
     }

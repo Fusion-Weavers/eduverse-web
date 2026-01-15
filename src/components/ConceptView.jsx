@@ -330,18 +330,11 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   return (
     <ErrorBoundary>
       <div className="concept-view">
-        {/* Breadcrumb navigation */}
-        <div className="breadcrumb">
-          <button onClick={() => navigateWithState('/subjects')} className="breadcrumb-link">
-            Subjects
-          </button>
-          <span className="breadcrumb-separator">›</span>
-          <button onClick={handleBack} className="breadcrumb-link">
-            {subject.name}
-          </button>
-          <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-current">{topic.name}</span>
-        </div>
+        {/* Back button */}
+        <button onClick={handleBack} className="back-button">
+          <IoArrowBackOutline aria-hidden="true" />
+          <span>Back</span>
+        </button>
 
         <div className="concept-layout">
           {/* Concept list sidebar */}
@@ -685,33 +678,31 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           margin: 0 auto;
         }
 
-        .breadcrumb {
-          display: flex;
+        .back-button {
+          display: inline-flex;
           align-items: center;
           gap: 0.5rem;
+          padding: 0.75rem 1.25rem;
           margin-bottom: 2rem;
-          font-size: 0.875rem;
-        }
-
-        .breadcrumb-link {
-          background: none;
-          border: none;
-          color: #007bff;
+          background: white;
+          border: 2px solid #000000;
+          border-radius: 0;
+          color: #000000;
           cursor: pointer;
-          text-decoration: underline;
+          font-size: 0.875rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          transition: all 0.2s ease;
         }
 
-        .breadcrumb-link:hover {
-          color: #0056b3;
+        .back-button:hover {
+          background: #000000;
+          color: white;
         }
 
-        .breadcrumb-separator {
-          color: #6c757d;
-        }
-
-        .breadcrumb-current {
-          color: #495057;
-          font-weight: 500;
+        .back-button svg {
+          font-size: 1.25rem;
         }
 
         .concept-layout {
@@ -1301,6 +1292,11 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
 
           .images-grid {
             grid-template-columns: 1fr;
+          }
+
+          .back-button {
+            width: 100%;
+            justify-content: center;
           }
         }
 

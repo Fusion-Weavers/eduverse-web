@@ -311,7 +311,7 @@ export default function WebXRViewer({ modelUrl, embedUrl, title }) {
                         justify-content: space-between;
                         align-items: center;
                         padding: 1rem 1.5rem;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: linear-gradient(135deg, #313131 0%, #3d3d3d 100%);
                         color: white;
                     }
 
@@ -596,7 +596,7 @@ export default function WebXRViewer({ modelUrl, embedUrl, title }) {
           justify-content: space-between;
           align-items: center;
           padding: 1rem 1.5rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #313131 0%, #3d3d3d 100%);
           color: white;
         }
 

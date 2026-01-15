@@ -934,4 +934,39 @@ input:checked+.toggle-slider:before {
 .admin-dashboard .empty-state p {
   font-size: 1.1rem;
   margin: 0;
+} 
+ /* Concept Actions */
+.concept-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+}
+
+.concept-actions button {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.concept-actions .btn-danger {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.concept-actions .btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+}
+
+/* Form field hints */
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  color: #6c757d;
+  font-size: 12px;
+  line-height: 1.4;
 }

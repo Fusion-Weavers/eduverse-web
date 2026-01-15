@@ -13,6 +13,7 @@ export default function TopicManager() {
   const [showForm, setShowForm] = useState(false);
   const [showConceptForm, setShowConceptForm] = useState(false);
   const [editingTopic, setEditingTopic] = useState(null);
+  const [editingConcept, setEditingConcept] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -93,10 +94,14 @@ export default function TopicManager() {
     setError("");
 
     try {
-      await conceptService.create({
-        ...conceptFormData,
-        topicId: selectedTopic.id
-      });
+      if (editingConcept) {
+        await conceptService.update(editingConcept.id, conceptFormData);
+      } else {
+        await conceptService.create({
+          ...conceptFormData,
+          topicId: selectedTopic.id
+        });
+      }
 
       await loadConcepts(selectedTopic.id);
       resetConceptForm();
@@ -156,6 +161,8 @@ export default function TopicManager() {
       estimatedReadTime: 10,
       arEnabled: false,
       visualizationType: "",
+      modelUrl: "",
+      embedUrl: "",
       content: {
         en: {
           title: "",
@@ -167,7 +174,43 @@ export default function TopicManager() {
         }
       }
     });
+    setEditingConcept(null);
     setShowConceptForm(false);
+  };
+
+  const handleEditConcept = (concept) => {
+    setEditingConcept(concept);
+    setConceptFormData({
+      title: concept.title || "",
+      difficulty: concept.difficulty || "beginner",
+      estimatedReadTime: concept.estimatedReadTime || 10,
+      arEnabled: concept.arEnabled || false,
+      visualizationType: concept.visualizationType || "",
+      modelUrl: concept.modelUrl || "",
+      embedUrl: concept.embedUrl || "",
+      content: concept.content || {
+        en: {
+          title: concept.title || "",
+          body: "",
+          summary: "",
+          examples: [],
+          images: [],
+          externalAssets: []
+        }
+      }
+    });
+    setShowConceptForm(true);
+  };
+
+  const handleDeleteConcept = async (conceptId) => {
+    if (!confirm("Are you sure you want to delete this concept?")) return;
+
+    try {
+      await conceptService.delete(conceptId);
+      await loadConcepts(selectedTopic.id);
+    } catch (err) {
+      setError("Failed to delete concept: " + err.message);
+    }
   };
 
   const getSubjectName = (subjectId) => {
@@ -286,7 +329,7 @@ export default function TopicManager() {
 
             {showConceptForm && (
               <div className="concept-form">
-                <h4>Add New Concept</h4>
+                <h4>{editingConcept ? "Edit Concept" : "Add New Concept"}</h4>
                 <form onSubmit={handleConceptSubmit}>
                   <div className="form-group">
                     <label>Title</label>
@@ -396,9 +439,37 @@ export default function TopicManager() {
                     </div>
                   )}
 
+                  {conceptFormData.arEnabled && (
+                    <>
+                      <div className="form-group">
+                        <label>Model URL (GLB/GLTF)</label>
+                        <input
+                          type="url"
+                          value={conceptFormData.modelUrl}
+                          onChange={(e) => setConceptFormData({ ...conceptFormData, modelUrl: e.target.value })}
+                          placeholder="https://example.com/model.glb"
+                        />
+                        <small>Direct link to a GLB or GLTF 3D model file</small>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Embed URL (Sketchfab, etc.)</label>
+                        <textarea
+                          value={conceptFormData.embedUrl}
+                          onChange={(e) => setConceptFormData({ ...conceptFormData, embedUrl: e.target.value })}
+                          rows="3"
+                          placeholder="Paste Sketchfab embed code or iframe src URL"
+                        />
+                        <small>Paste full embed code or just the iframe src URL from Sketchfab</small>
+                      </div>
+                    </>
+                  )}
+
                   <div className="form-actions">
                     <button type="button" onClick={resetConceptForm}>Cancel</button>
-                    <button type="submit" className="btn-primary">Create Concept</button>
+                    <button type="submit" className="btn-primary">
+                      {editingConcept ? "Update" : "Create"} Concept
+                    </button>
                   </div>
                 </form>
               </div>
@@ -419,6 +490,15 @@ export default function TopicManager() {
                         <IoGlassesOutline aria-hidden="true" /> AR
                       </span>
                     )}
+                  </div>
+                  <div className="concept-actions">
+                    <button onClick={() => handleEditConcept(concept)}>Edit</button>
+                    <button
+                      onClick={() => handleDeleteConcept(concept.id)}
+                      className="btn-danger"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}

@@ -29,12 +29,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getConceptsByTopic, topics, subjects, trackUserActivity, loading, error } = useContent();
-  const {
-    currentLanguage,
-    getLocalizedContent,
-    isTranslating,
-    getLanguageDisplayName
-  } = useLanguage();
+  const { currentLanguage, getLocalizedContent, isTranslating, getLanguageDisplayName } = useLanguage();
   const { isConceptFavorited } = useFavorites();
   const { navigateWithState } = useNavigation();
 
@@ -43,7 +38,6 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   const [contentLoading, setContentLoading] = useState(false);
   const [contentError, setContentError] = useState(null);
 
-  // Derive a clean embed URL (handles full iframe snippets saved from Sketchfab)
   const getEmbedUrl = (raw) => {
     if (!raw) return null;
     if (raw.includes('<iframe')) {
@@ -57,47 +51,31 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   const topic = topics.find(t => t.id === topicId);
   const subject = subjects.find(s => s.id === topic?.subjectId);
 
-  // Helper function to get content in selected language with fallback
   const getConceptLocalizedContent = async (concept) => {
     if (!concept || !concept.content) return null;
-
     const cacheKey = `${concept.id}_${currentLanguage}`;
-
-    // Check cache first
     if (localizedContentCache.has(cacheKey)) {
       return localizedContentCache.get(cacheKey);
     }
 
     try {
-      // Use the LanguageContext's getLocalizedContent method
-      const context = {
-        subject: subject?.name,
-        topic: topic?.name,
-        difficulty: concept.difficulty
-      };
-
-      const localizedContent = await getLocalizedContent(
-        concept.content,
-        concept.id,
-        context
-      );
+      const localizedContent = await getLocalizedContent(concept.content, concept.id);
 
       const result = {
         content: localizedContent,
         language: localizedContent.language,
         isFallback: localizedContent.isFallback || false,
         fallbackReason: localizedContent.fallbackReason,
-        isTranslated: localizedContent.isTranslated || false
+        isTranslated: localizedContent.isTranslated || false,
+        fromCache: localizedContent.fromCache || false
       };
 
-      // Cache the result
       setLocalizedContentCache(prev => new Map(prev.set(cacheKey, result)));
-
       return result;
+
     } catch (error) {
       console.error('Error getting localized content:', error);
 
-      // Fallback to English if available
       if (concept.content.en) {
         return {
           content: concept.content.en,
@@ -107,102 +85,78 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           isTranslated: false
         };
       }
-
       return null;
     }
   };
 
-  // Helper function to render rich content with proper formatting
   const renderRichContent = (text) => {
     if (!text) return null;
-
-    // Split text into paragraphs and render with proper spacing
     const paragraphs = text.split('\n\n').filter(p => p.trim());
 
     return paragraphs.map((paragraph, index) => {
-      // Check for special formatting
-      const trimmedParagraph = paragraph.trim();
-
-      // Handle code blocks (```code```)
-      if (trimmedParagraph.startsWith('```') && trimmedParagraph.endsWith('```')) {
-        const code = trimmedParagraph.slice(3, -3).trim();
+      const trimmed = paragraph.trim();
+      if (trimmed.startsWith('```') && trimmed.endsWith('```')) {
+        const code = trimmed.slice(3, -3).trim();
         return (
-          <div key={index} className="code-block">
-            <pre><code>{code}</code></pre>
-          </div>
+          <pre key={index} className="my-4 bg-gray-100 border border-gray-200 rounded-lg p-4 overflow-x-auto text-sm font-mono text-gray-800">
+            {code}
+          </pre>
         );
       }
 
-      // Handle inline code (`code`)
-      let formattedText = trimmedParagraph.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+      let formatted = trimmed
+        .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\$([^$]+)\$/g, '<span class="math-expression">$1</span>');
 
-      // Handle bold text (**text**)
-      formattedText = formattedText.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-      // Handle italic text (*text*)
-      formattedText = formattedText.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-
-      // Handle mathematical expressions (LaTeX-style)
-      formattedText = formattedText.replace(/\$([^$]+)\$/g, '<span class="math-expression">$1</span>');
-
-      // Handle bullet points
-      if (trimmedParagraph.startsWith('• ') || trimmedParagraph.startsWith('- ')) {
+      if (trimmed.startsWith('• ') || trimmed.startsWith('- ')) {
         return (
-          <ul key={index} className="concept-list">
-            <li dangerouslySetInnerHTML={{ __html: formattedText.replace(/^[•-]\s*/, '') }} />
+          <ul key={index} className="list-disc pl-6 my-3 space-y-1 text-gray-700">
+            <li dangerouslySetInnerHTML={{ __html: formatted.replace(/^[•-]\s*/, '') }} />
           </ul>
         );
       }
 
-      // Handle numbered lists
-      if (/^\d+\.\s/.test(trimmedParagraph)) {
+      if (/^\d+\.\s/.test(trimmed)) {
         return (
-          <ol key={index} className="concept-numbered-list">
-            <li dangerouslySetInnerHTML={{ __html: formattedText.replace(/^\d+\.\s*/, '') }} />
+          <ol key={index} className="list-decimal pl-6 my-3 space-y-1 text-gray-700">
+            <li dangerouslySetInnerHTML={{ __html: formatted.replace(/^\d+\.\s*/, '') }} />
           </ol>
         );
       }
 
-      // Handle headers (## Header)
-      if (trimmedParagraph.startsWith('## ')) {
+      if (trimmed.startsWith('## ')) {
         return (
-          <h4 key={index} className="concept-subheading">
-            {trimmedParagraph.replace('## ', '')}
+          <h4 key={index} className="text-xl font-semibold text-gray-800 mt-8 mb-3 border-b border-gray-200 pb-2">
+            {trimmed.replace('## ', '')}
           </h4>
         );
       }
 
-      // Handle blockquotes (> text)
-      if (trimmedParagraph.startsWith('> ')) {
+      if (trimmed.startsWith('> ')) {
         return (
-          <blockquote key={index} className="concept-quote">
-            <div dangerouslySetInnerHTML={{ __html: formattedText.replace(/^>\s*/, '') }} />
+          <blockquote key={index} className="my-4 p-4 bg-gray-100 border-l-4 border-blue-500 italic text-gray-600 rounded">
+            <div dangerouslySetInnerHTML={{ __html: formatted.replace(/^>\s*/, '') }} />
           </blockquote>
         );
       }
 
-      // Regular paragraph
       return (
-        <p key={index} className="concept-paragraph" dangerouslySetInnerHTML={{ __html: formattedText }} />
+        <p key={index} className="mb-4 text-gray-800 leading-7" dangerouslySetInnerHTML={{ __html: formatted }} />
       );
     });
   };
 
-  // Use useMemo to derive selected concept from props and concepts
   const selectedConcept = useMemo(() => {
-    if (conceptId) {
-      return concepts.find(c => c.id === conceptId) || null;
-    } else if (concepts.length > 0) {
-      return concepts[0];
-    }
-    return null;
+    if (conceptId) return concepts.find(c => c.id === conceptId) || null;
+    return concepts.length > 0 ? concepts[0] : null;
   }, [conceptId, concepts]);
 
-  // Load localized content when concept or language changes
   useEffect(() => {
     let isMounted = true;
 
-    const loadContent = async () => {
+    const load = async () => {
       if (!selectedConcept) {
         if (isMounted) {
           setLocalizedContent(null);
@@ -222,9 +176,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
         if (isMounted) {
           setLocalizedContent(content);
           setContentLoading(false);
-          setContentError(null);
 
-          // Track that user has read this concept
           if (user?.uid) {
             trackUserActivity(user.uid, 'concept_read', selectedConcept.id, {
               estimatedReadTime: selectedConcept.estimatedReadTime || 0
@@ -232,7 +184,6 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
           }
         }
       } catch (error) {
-        console.error('Error loading localized content:', error);
         if (isMounted) {
           setLocalizedContent(null);
           setContentLoading(false);
@@ -241,29 +192,16 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
       }
     };
 
-    loadContent();
+    load();
+    return () => { isMounted = false; };
+  }, [selectedConcept, currentLanguage, getLocalizedContent]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedConcept, currentLanguage, getLocalizedContent, subject?.name, topic?.name, user?.uid, trackUserActivity]);
-
-  // Clear cache when language changes
   useEffect(() => {
-    const clearCache = () => {
-      setLocalizedContentCache(new Map());
-    };
-
-    // Use setTimeout to avoid synchronous setState in effect
-    const timeoutId = setTimeout(clearCache, 0);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    const timeout = setTimeout(() => setLocalizedContentCache(new Map()), 0);
+    return () => clearTimeout(timeout);
   }, [currentLanguage]);
 
   const handleConceptSelect = (concept) => {
-    // Navigate to the selected concept using enhanced navigation
     navigateWithState(`/subjects/${topic.subjectId}/${topicId}/${concept.id}`, {
       breadcrumb: {
         title: topic.name,
@@ -273,28 +211,20 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
   };
 
   const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      navigate(`/subjects/${topic.subjectId}`);
-    }
+    onBack ? onBack() : navigate(`/subjects/${topic.subjectId}`);
   };
 
-  // Loading state for entire component
-  if (loading) {
-    return <LoadingSpinner message="Loading concepts..." size="medium" />;
-  }
+  if (loading) return <LoadingSpinner message="Loading concepts..." size="medium" />;
 
-  // Error state for entire component
   if (error) {
     return (
       <ErrorState
         title="Error Loading Content"
         message={`Failed to load concepts: ${error.message}`}
-        icon={<IoDocumentTextOutline aria-hidden="true" />}
+        icon={<IoDocumentTextOutline />}
         variant="network"
         onRetry={() => window.location.reload()}
-        showRetry={true}
+        showRetry
       />
     );
   }
@@ -304,10 +234,10 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
       <ErrorState
         title="Content Not Found"
         message="The requested topic or subject could not be found."
-        icon={<IoSearchOutline aria-hidden="true" />}
+        icon={<IoSearchOutline />}
         variant="notFound"
         onRetry={handleBack}
-        showRetry={true}
+        showRetry
       />
     );
   }
@@ -317,11 +247,11 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
       <ErrorBoundary>
         <ErrorState
           title="No Concepts Available"
-          message="This topic doesn't have any concepts yet. Check back later for new content."
-          icon={<IoBookOutline aria-hidden="true" />}
+          message="This topic doesn't have any concepts yet."
+          icon={<IoBookOutline />}
           variant="default"
           onRetry={handleBack}
-          showRetry={true}
+          showRetry
         />
       </ErrorBoundary>
     );
@@ -329,59 +259,56 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
 
   return (
     <ErrorBoundary>
-      <div className="concept-view">
-        {/* Back button */}
-        <button onClick={handleBack} className="back-button">
-          <IoArrowBackOutline aria-hidden="true" />
+      <div className="p-4 max-w-6xl mx-auto">
+        
+        <button
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 px-4 py-3 mb-8 text-black bg-white border-2 border-black uppercase text-sm font-semibold tracking-wide hover:bg-black hover:text-white transition-all"
+        >
+          <IoArrowBackOutline />
           <span>Back</span>
         </button>
 
-        <div className="concept-layout">
-          {/* Concept list sidebar */}
-          <div className="concept-sidebar">
-            <div className="sidebar-header">
-              <h4>Concepts in {topic.name}</h4>
-              <FavoriteButton
-                itemId={topicId}
-                itemType="topic"
-                size="small"
-                showLabel={true}
-              />
+        <div className="grid grid-cols-[300px_1fr] gap-8 min-h-600px max-md:grid-cols-1">
+
+          <div className="bg-gray-100 rounded-xl p-6 sticky top-4 max-md:static h-fit">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-gray-700 font-medium text-base">Concepts in {topic.name}</h4>
+              <FavoriteButton itemId={topicId} itemType="topic" size="small" showLabel />
             </div>
-            <div className="concept-list">
+
+            <div className="flex flex-col gap-2">
               {concepts.map((concept) => (
                 <div
                   key={concept.id}
-                  className={`concept-item ${selectedConcept?.id === concept.id ? 'active' : ''} ${isConceptFavorited(concept.id) ? 'favorited' : ''}`}
                   onClick={() => handleConceptSelect(concept)}
-                  role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleConceptSelect(concept);
-                    }
-                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleConceptSelect(concept); }}
+                  className={`
+                    border rounded-lg p-4 cursor-pointer transition shadow-sm
+                    ${selectedConcept?.id === concept.id ? "border-blue-500 bg-blue-50" : "bg-white border-gray-300"}
+                    ${isConceptFavorited(concept.id) ? "border-yellow-400 bg-yellow-50" : ""}
+                  `}
                 >
-                  <div className="concept-item-header">
-                    <div className="concept-item-title">{concept.title}</div>
-                    <FavoriteButton
-                      itemId={concept.id}
-                      itemType="concept"
-                      size="small"
-                    />
+                  <div className="flex items-start justify-between mb-1">
+                    <div className="font-semibold text-gray-700 flex-1">{concept.title}</div>
+                    <FavoriteButton itemId={concept.id} itemType="concept" size="small" />
                   </div>
-                  <div className="concept-item-meta">
-                    <span className={`difficulty ${concept.difficulty}`}>
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                    <span
+                      className={`
+                        px-2 py-1 rounded-full font-semibold uppercase
+                        ${concept.difficulty === "beginner" && "bg-green-100 text-green-800"}
+                        ${concept.difficulty === "intermediate" && "bg-yellow-100 text-yellow-800"}
+                        ${concept.difficulty === "advanced" && "bg-red-100 text-red-800"}
+                      `}
+                    >
                       {concept.difficulty}
                     </span>
-                    <span className="read-time">
-                      {concept.estimatedReadTime} min
-                    </span>
+                    <span>{concept.estimatedReadTime} min</span>
                     {isConceptFavorited(concept.id) && (
-                      <span className="favorite-indicator" title="Favorited">
-                        <IoStar aria-hidden="true" />
-                      </span>
+                      <IoStar className="text-yellow-500 text-sm" title="Favorited" />
                     )}
                   </div>
                 </div>
@@ -389,199 +316,169 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
             </div>
           </div>
 
-          {/* Main concept content */}
-          <div className="concept-content">
+          <div className="bg-white rounded-xl p-8 shadow-md max-md:p-4">
             {contentLoading ? (
               <LoadingSpinner message={isTranslating ? `Translating to ${getLanguageDisplayName(currentLanguage)}...` : "Loading content..."} />
             ) : contentError ? (
               <ErrorState
                 title="Error Loading Content"
                 message={contentError}
-                icon={<IoWarningOutline aria-hidden="true" />}
+                icon={<IoWarningOutline />}
                 variant="network"
                 size="small"
+                showRetry
                 onRetry={() => {
-                  // Force refresh of content
                   setLocalizedContentCache(new Map());
                   setContentError(null);
-                  if (selectedConcept) {
-                    setContentLoading(true);
-                    getConceptLocalizedContent(selectedConcept)
-                      .then(content => {
-                        setLocalizedContent(content);
-                        setContentLoading(false);
-                      })
-                      .catch(error => {
-                        console.error('Error loading localized content:', error);
-                        setLocalizedContent(null);
-                        setContentLoading(false);
-                        setContentError(error.message || 'Failed to load content');
-                      });
-                  }
+                  setContentLoading(true);
+                  getConceptLocalizedContent(selectedConcept)
+                    .then(content => {
+                      setLocalizedContent(content);
+                      setContentLoading(false);
+                    })
+                    .catch(error => {
+                      setLocalizedContent(null);
+                      setContentLoading(false);
+                      setContentError(error.message);
+                    });
                 }}
-                showRetry={true}
               />
             ) : selectedConcept && localizedContent ? (
               <>
-                <div className="concept-header">
-                  <div className="concept-title-section">
-                    <div className="title-with-favorite">
-                      <h2>{localizedContent.content.title || selectedConcept.title}</h2>
-                      <FavoriteButton
-                        itemId={selectedConcept.id}
-                        itemType="concept"
-                        size="large"
-                        showLabel={true}
-                      />
-                    </div>
-
-                    {/* Language and translation status notices */}
-                    {localizedContent.isFallback && (
-                      <div className={`language-fallback-notice ${localizedContent.fallbackReason || ''}`}>
-                        <span className="fallback-icon" aria-hidden="true">
-                          {localizedContent.fallbackReason === 'translating' ? (
-                            <IoRefreshOutline />
-                          ) : localizedContent.fallbackReason === 'translation_failed' ? (
-                            <IoWarningOutline />
-                          ) : (
-                            <IoInformationCircleOutline />
-                          )}
-                        </span>
-                        <div className="fallback-message">
-                          {localizedContent.fallbackReason === 'translating' && (
-                            <>
-                              <strong>Translating...</strong><br />
-                              Content is being translated to {getLanguageDisplayName(currentLanguage)}
-                            </>
-                          )}
-                          {localizedContent.fallbackReason === 'translation_failed' && (
-                            <>
-                              <strong>Translation Failed</strong><br />
-                              Showing content in {getLanguageDisplayName(localizedContent.language)}. Translation error occurred.
-                            </>
-                          )}
-                          {localizedContent.fallbackReason === 'translation_unavailable' && (
-                            <>
-                              <strong>Translation Unavailable</strong><br />
-                              Showing content in {getLanguageDisplayName(localizedContent.language)}. AI translation not available.
-                            </>
-                          )}
-                          {localizedContent.fallbackReason === 'language_unavailable' && (
-                            <>
-                              <strong>Language Not Available</strong><br />
-                              Showing content in {getLanguageDisplayName(localizedContent.language)} (available language).
-                            </>
-                          )}
-                          {!localizedContent.fallbackReason && (
-                            <>
-                              Content shown in {getLanguageDisplayName(localizedContent.language)}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {localizedContent.isTranslated && !localizedContent.isFallback && (
-                      <div className="language-fallback-notice translating">
-                        <span className="fallback-icon" aria-hidden="true">
-                          <IoSparklesOutline />
-                        </span>
-                        <div className="fallback-message">
-                          <strong>AI Translated</strong><br />
-                          This content was automatically translated to {getLanguageDisplayName(currentLanguage)}
-                        </div>
-                      </div>
-                    )}
+                <div className="mb-8 pb-4 border-b border-gray-200">
+                  <div className="flex items-start justify-between gap-4 max-md:flex-col mb-2">
+                    <h2 className="text-gray-800 text-2xl font-semibold flex-1">
+                      {localizedContent.content.title || selectedConcept.title}
+                    </h2>
+                    <FavoriteButton itemId={selectedConcept.id} itemType="concept" size="large" showLabel />
                   </div>
 
-                  <div className="concept-meta">
-                    <span className={`difficulty ${selectedConcept.difficulty}`}>
+                  {localizedContent.isFallback && (
+                    <div className={`flex gap-3 p-4 mb-4 rounded-lg border items-start
+                      ${localizedContent.fallbackReason === 'translating'
+                        ? "bg-purple-50 border-purple-200 text-purple-700"
+                        : "bg-blue-50 border-blue-200 text-blue-700"
+                      }`}
+                    >
+                      <span className="text-xl shrink-0">
+                        {localizedContent.fallbackReason === 'translating' ? <IoRefreshOutline /> :
+                          localizedContent.fallbackReason === 'translation_failed' ? <IoWarningOutline /> :
+                            <IoInformationCircleOutline />}
+                      </span>
+                      <div className="text-sm leading-5">
+                        {localizedContent.fallbackReason === 'translating' && (
+                          <>
+                            <strong>Translating...</strong><br />
+                            Content is being translated to {getLanguageDisplayName(currentLanguage)}
+                          </>
+                        )}
+                        {localizedContent.fallbackReason === 'translation_failed' && (
+                          <>
+                            <strong>Translation Failed</strong><br />
+                            Showing content in {getLanguageDisplayName(localizedContent.language)}
+                          </>
+                        )}
+                        {!localizedContent.fallbackReason && (
+                          <>Content shown in {getLanguageDisplayName(localizedContent.language)}</>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {localizedContent.isTranslated && !localizedContent.isFallback && (
+                    <div className="flex gap-3 p-4 mb-4 rounded-lg border bg-purple-50 border-purple-200 text-purple-700">
+                      <span className="text-xl"><IoSparklesOutline /></span>
+                      <div className="text-sm">
+                        <strong>AI Translated</strong><br />
+                        {localizedContent.fromCache 
+                          ? 'This content was automatically translated (cached)'
+                          : 'This content was automatically translated'}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                    <span
+                      className={`
+                        px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide
+                        ${selectedConcept.difficulty === "beginner" && "bg-green-100 text-green-700"}
+                        ${selectedConcept.difficulty === "intermediate" && "bg-yellow-100 text-yellow-700"}
+                        ${selectedConcept.difficulty === "advanced" && "bg-red-100 text-red-700"}
+                      `}
+                    >
                       {selectedConcept.difficulty}
                     </span>
-                    <span className="read-time">
-                      {selectedConcept.estimatedReadTime} min read
-                    </span>
+                    <span>{selectedConcept.estimatedReadTime} min read</span>
                     {selectedConcept.updatedAt && (
-                      <span className="last-updated">
+                      <span>
                         Updated {new Date(selectedConcept.updatedAt.seconds * 1000).toLocaleDateString()}
                       </span>
                     )}
-                    <span className="current-language">
-                      Language: {getLanguageDisplayName(currentLanguage)}
-                    </span>
+                    <span>Language: {getLanguageDisplayName(currentLanguage)}</span>
                   </div>
                 </div>
 
-                <div className="concept-body">
-                  {/* Summary section */}
+                <div className="leading-relaxed text-gray-800">
                   {localizedContent.content.summary && (
-                    <div className="concept-summary">
+                    <div className="bg-gray-100 border-l-4 border-blue-500 p-4 rounded-md mb-6">
                       <strong>Summary:</strong> {localizedContent.content.summary}
                     </div>
                   )}
 
-                  {/* Main content with rich formatting */}
-                  <div className="concept-text">
-                    {renderRichContent(localizedContent.content.body)}
-                  </div>
+                  <div>{renderRichContent(localizedContent.content.body)}</div>
 
-                  {/* Images section */}
-                  {localizedContent.content.images && localizedContent.content.images.length > 0 && (
-                    <div className="concept-images">
-                      <h4>Visual References:</h4>
-                      <div className="images-grid">
-                        {localizedContent.content.images.map((imageUrl, index) => (
-                          <div key={index} className="concept-image">
-                            <img
-                              src={imageUrl}
-                              alt={`Illustration ${index + 1} for ${selectedConcept.title}`}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                              }}
-                            />
+                  {localizedContent.content.images?.length > 0 && (
+                    <div className="my-6">
+                      <h4 className="text-gray-800 font-semibold mb-3">Visual References:</h4>
+                      <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                        {localizedContent.content.images.map((url, i) => (
+                          <img
+                            key={i}
+                            src={url}
+                            onError={e => e.target.style.display = 'none'}
+                            alt=""
+                            className="rounded-lg shadow w-full"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {localizedContent.content.examples?.length > 0 && (
+                    <div className="bg-gray-100 p-6 rounded-xl my-8">
+                      <h4 className="text-gray-800 font-semibold mb-3">Examples:</h4>
+                      <div className="flex flex-col gap-3">
+                        {localizedContent.content.examples.map((example, idx) => (
+                          <div key={idx} className="flex gap-2 items-start">
+                            <span className="bg-blue-600 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <span className="text-gray-800">{example}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Examples section with enhanced formatting */}
-                  {localizedContent.content.examples && localizedContent.content.examples.length > 0 && (
-                    <div className="concept-examples">
-                      <h4>Examples:</h4>
-                      <div className="examples-list">
-                        {localizedContent.content.examples.map((example, index) => (
-                          <div key={index} className="example-item">
-                            <span className="example-number">{index + 1}.</span>
-                            <span className="example-text">{example}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* External assets section */}
-                  {localizedContent.content.externalAssets && localizedContent.content.externalAssets.length > 0 && (
-                    <div className="external-assets">
-                      <h4>Additional Resources:</h4>
-                      <div className="assets-list">
-                        {localizedContent.content.externalAssets.map((assetUrl, index) => (
+                  {localizedContent.content.externalAssets?.length > 0 && (
+                    <div className="bg-green-50 p-6 rounded-xl my-8">
+                      <h4 className="font-semibold text-gray-800 mb-3">Additional Resources:</h4>
+                      <div className="flex flex-col gap-2">
+                        {localizedContent.content.externalAssets.map((url, idx) => (
                           <a
-                            key={index}
-                            href={assetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="asset-link"
+                            key={idx}
+                            href={url}
+                            className="text-green-700 hover:underline flex items-center gap-2"
+                            target="_blank" rel="noreferrer"
                           >
-                            <IoAttachOutline aria-hidden="true" />
-                            <span>Resource {index + 1}</span>
+                            <IoAttachOutline />
+                            <span>Resource {idx + 1}</span>
                           </a>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* AR/3D Visualization */}
                   {selectedConcept.arEnabled && (selectedConcept.modelUrl || selectedConcept.embedUrl) && (
                     <WebXRViewer
                       modelUrl={selectedConcept.modelUrl}
@@ -590,39 +487,44 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                     />
                   )}
 
-                  {/* AR/3D Visualization indicator for concepts without modelUrl/embedUrl */}
                   {selectedConcept.arEnabled && !selectedConcept.modelUrl && !selectedConcept.embedUrl && (
-                    <div className="ar-indicator">
-                      <div className="ar-badge">
-                        <span className="ar-icon" aria-hidden="true"><IoGlassesOutline /></span>
-                        <div className="ar-text">
-                          <strong>3D Model Coming Soon</strong>
-                          <p>This concept will support 3D visualization</p>
+                    <div className="my-8 p-6 rounded-xl border bg-linear-to-r from-blue-50 to-purple-50">
+                      <div className="flex items-center gap-3">
+                        <IoGlassesOutline className="text-2xl" />
+                        <div>
+                          <strong className="text-blue-700 block">3D Model Coming Soon</strong>
+                          <p className="text-gray-600 text-sm m-0">This concept will support 3D visualization</p>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Enhanced related concepts navigation */}
-                {selectedConcept.relatedConcepts && selectedConcept.relatedConcepts.length > 0 && (
-                  <div className="related-concepts">
-                    <h4>Related Concepts:</h4>
-                    <div className="related-list">
-                      {selectedConcept.relatedConcepts.map((relatedId) => {
-                        const relatedConcept = concepts.find(c => c.id === relatedId);
-                        if (!relatedConcept) return null;
+                {selectedConcept.relatedConcepts?.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-gray-200">
+                    <h4 className="text-gray-800 font-semibold mb-4">Related Concepts:</h4>
+                    <div className="grid gap-4 grid-cols-2 max-md:grid-cols-1">
+                      {selectedConcept.relatedConcepts.map(id => {
+                        const related = concepts.find(c => c.id === id);
+                        if (!related) return null;
 
                         return (
                           <button
-                            key={relatedId}
-                            className="related-concept-btn"
-                            onClick={() => handleConceptSelect(relatedConcept)}
+                            key={id}
+                            onClick={() => handleConceptSelect(related)}
+                            className="p-4 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-500 hover:shadow transition"
                           >
-                            <div className="related-concept-info">
-                              <span className="related-title">{relatedConcept.title}</span>
-                              <span className={`related-difficulty ${relatedConcept.difficulty}`}>
-                                {relatedConcept.difficulty}
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-700 font-medium">{related.title}</span>
+                              <span
+                                className={`
+                                  px-2 py-1 rounded text-xs uppercase font-semibold
+                                  ${related.difficulty === "beginner" && "bg-green-100 text-green-700"}
+                                  ${related.difficulty === "intermediate" && "bg-yellow-100 text-yellow-700"}
+                                  ${related.difficulty === "advanced" && "bg-red-100 text-red-700"}
+                                `}
+                              >
+                                {related.difficulty}
                               </span>
                             </div>
                           </button>
@@ -632,686 +534,17 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                   </div>
                 )}
               </>
-            ) : selectedConcept ? (
-              <ErrorState
-                title="Content Not Available"
-                message="Content for this concept is not available in the selected language."
-                icon={<IoGlobeOutline aria-hidden="true" />}
-                variant="default"
-                size="small"
-                onRetry={() => {
-                  // Force refresh of content
-                  setLocalizedContentCache(new Map());
-                  if (selectedConcept) {
-                    setContentLoading(true);
-                    getConceptLocalizedContent(selectedConcept)
-                      .then(content => {
-                        setLocalizedContent(content);
-                        setContentLoading(false);
-                      })
-                      .catch(error => {
-                        console.error('Error loading localized content:', error);
-                        setLocalizedContent(null);
-                        setContentLoading(false);
-                      });
-                  }
-                }}
-                showRetry={true}
-              />
             ) : (
               <ErrorState
                 title="Select a Concept"
-                message="Choose a concept from the list to view its content."
-                icon={<IoArrowBackOutline aria-hidden="true" />}
+                message="Choose a concept from the list."
+                icon={<IoArrowBackOutline />}
                 variant="default"
                 size="small"
-                showRetry={false}
               />
             )}
           </div>
         </div>
-
-        <style jsx>{`
-        .concept-view {
-          padding: 1rem;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .back-button {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.75rem 1.25rem;
-          margin-bottom: 2rem;
-          background: white;
-          border: 2px solid #000000;
-          border-radius: 0;
-          color: #000000;
-          cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover {
-          background: #000000;
-          color: white;
-        }
-
-        .back-button svg {
-          font-size: 1.25rem;
-        }
-
-        .concept-layout {
-          display: grid;
-          grid-template-columns: 300px 1fr;
-          gap: 2rem;
-          min-height: 600px;
-        }
-
-        .concept-sidebar {
-          background: #f8f9fa;
-          border-radius: 0.75rem;
-          padding: 1.5rem;
-          height: fit-content;
-          position: sticky;
-          top: 1rem;
-        }
-
-        .sidebar-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-          gap: 1rem;
-        }
-
-        .sidebar-header h4 {
-          margin: 0;
-          color: #495057;
-          font-size: 1rem;
-          flex: 1;
-        }
-
-        .concept-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .concept-item {
-          background: white;
-          border: 1px solid #e9ecef;
-          border-radius: 0.5rem;
-          padding: 1rem;
-          text-align: left;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          width: 100%;
-        }
-
-        .concept-item:hover {
-          border-color: #007bff;
-          box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
-        }
-
-        .concept-item.active {
-          border-color: #007bff;
-          background-color: #e3f2fd;
-        }
-
-        .concept-item.favorited {
-          border-color: #ffc107;
-          background: linear-gradient(135deg, #fff 0%, #fffbf0 100%);
-        }
-
-        .concept-item.favorited.active {
-          background: linear-gradient(135deg, #e3f2fd 0%, #fffbf0 100%);
-        }
-
-        .concept-item-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 0.5rem;
-          gap: 0.5rem;
-        }
-
-        .concept-item-title {
-          font-weight: 600;
-          color: #495057;
-          margin-bottom: 0.5rem;
-          flex: 1;
-        }
-
-        .concept-item-meta {
-          display: flex;
-          gap: 0.5rem;
-          font-size: 0.75rem;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .concept-content {
-          background: white;
-          border-radius: 0.75rem;
-          padding: 2rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .concept-header {
-          margin-bottom: 2rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #e9ecef;
-        }
-
-        .title-with-favorite {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 1rem;
-          margin-bottom: 1rem;
-        }
-
-        .title-with-favorite h2 {
-          margin: 0;
-          color: #495057;
-          flex: 1;
-        }
-
-        .concept-meta {
-          display: flex;
-          gap: 1rem;
-          font-size: 0.875rem;
-          flex-wrap: wrap;
-          align-items: center;
-        }
-
-        .difficulty {
-          padding: 0.25rem 0.75rem;
-          border-radius: 1rem;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          white-space: nowrap;
-          flex-shrink: 0;
-          display: inline-block;
-        }
-
-        .difficulty.beginner {
-          background-color: #d4edda;
-          color: #155724;
-        }
-
-        .difficulty.intermediate {
-          background-color: #fff3cd;
-          color: #856404;
-        }
-
-        .difficulty.advanced {
-          background-color: #f8d7da;
-          color: #721c24;
-        }
-
-        .read-time,
-        .last-updated,
-        .current-language {
-          color: #6c757d;
-        }
-
-        .favorite-indicator {
-          color: #ffc107;
-          font-size: 0.875rem;
-          animation: twinkle 2s infinite;
-        }
-
-        @keyframes twinkle {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-
-        .language-fallback-notice {
-          background: #e3f2fd;
-          border: 1px solid #bbdefb;
-          border-radius: 0.5rem;
-          padding: 1rem;
-          margin-bottom: 1rem;
-          display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-        }
-
-        .language-fallback-notice.translating {
-          background: #f3e5f5;
-          border-color: #ce93d8;
-        }
-
-        .fallback-icon {
-          font-size: 1.25rem;
-          flex-shrink: 0;
-        }
-
-        .fallback-message {
-          font-size: 0.875rem;
-          color: #1976d2;
-        }
-
-        .language-fallback-notice.translating .fallback-message {
-          color: #7b1fa2;
-        }
-
-        .concept-body {
-          line-height: 1.6;
-        }
-
-        .concept-summary {
-          background: #f8f9fa;
-          border-left: 4px solid #007bff;
-          padding: 1rem;
-          margin-bottom: 2rem;
-          border-radius: 0 0.5rem 0.5rem 0;
-        }
-
-        .concept-paragraph {
-          margin-bottom: 1rem;
-          color: #495057;
-          line-height: 1.7;
-        }
-
-        .concept-subheading {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #495057;
-          margin: 2rem 0 1rem 0;
-          border-bottom: 2px solid #e9ecef;
-          padding-bottom: 0.5rem;
-        }
-
-        .code-block {
-          margin: 1.5rem 0;
-          background: #f8f9fa;
-          border: 1px solid #e9ecef;
-          border-radius: 0.5rem;
-          overflow-x: auto;
-        }
-
-        .code-block pre {
-          margin: 0;
-          padding: 1rem;
-          font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
-          font-size: 0.875rem;
-          line-height: 1.5;
-          color: #495057;
-        }
-
-        .code-block code {
-          background: none;
-          padding: 0;
-          border-radius: 0;
-          font-size: inherit;
-        }
-
-        .inline-code {
-          background: #f8f9fa;
-          color: #e83e8c;
-          padding: 0.125rem 0.375rem;
-          border-radius: 0.25rem;
-          font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
-          font-size: 0.875em;
-          border: 1px solid #e9ecef;
-        }
-
-        .math-expression {
-          background: #e3f2fd;
-          color: #1976d2;
-          padding: 0.125rem 0.375rem;
-          border-radius: 0.25rem;
-          font-family: 'Times New Roman', serif;
-          font-style: italic;
-          border: 1px solid #bbdefb;
-        }
-
-        .concept-list,
-        .concept-numbered-list {
-          margin: 1rem 0;
-          padding-left: 1.5rem;
-        }
-
-        .concept-list li,
-        .concept-numbered-list li {
-          margin-bottom: 0.5rem;
-          line-height: 1.6;
-          color: #495057;
-        }
-
-        .concept-quote {
-          margin: 1.5rem 0;
-          padding: 1rem 1.5rem;
-          background: #f8f9fa;
-          border-left: 4px solid #007bff;
-          border-radius: 0 0.5rem 0.5rem 0;
-          font-style: italic;
-          color: #6c757d;
-        }
-
-        .concept-quote div {
-          margin: 0;
-        }
-
-        .concept-examples {
-          margin: 2rem 0;
-          padding: 1.5rem;
-          background: #f8f9fa;
-          border-radius: 0.75rem;
-        }
-
-        .concept-examples h4 {
-          margin-bottom: 1rem;
-          color: #495057;
-        }
-
-        .examples-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .example-item {
-          display: flex;
-          gap: 0.75rem;
-          align-items: flex-start;
-        }
-
-        .example-number {
-          background: #007bff;
-          color: white;
-          border-radius: 50%;
-          width: 1.5rem;
-          height: 1.5rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.75rem;
-          font-weight: 600;
-          flex-shrink: 0;
-        }
-
-        .example-text {
-          color: #495057;
-          line-height: 1.5;
-        }
-
-        .concept-images {
-          margin: 2rem 0;
-        }
-
-        .concept-images h4 {
-          margin-bottom: 1rem;
-          color: #495057;
-        }
-
-        .images-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 1rem;
-        }
-
-        .concept-image img {
-          width: 100%;
-          height: auto;
-          border-radius: 0.5rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .external-assets {
-          margin: 2rem 0;
-          padding: 1.5rem;
-          background: #e8f5e8;
-          border-radius: 0.75rem;
-        }
-
-        .external-assets h4 {
-          margin-bottom: 1rem;
-          color: #495057;
-        }
-
-        .assets-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .asset-link {
-          color: #28a745;
-          text-decoration: none;
-          padding: 0.5rem;
-          border-radius: 0.375rem;
-          transition: background-color 0.2s ease;
-        }
-
-        .asset-link:hover {
-          background-color: rgba(40, 167, 69, 0.1);
-          text-decoration: underline;
-        }
-
-        .ar-indicator {
-          margin: 2rem 0;
-          padding: 1.5rem;
-          background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-          border-radius: 0.75rem;
-          border: 1px solid #bbdefb;
-        }
-
-        .ar-badge {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .ar-icon {
-          font-size: 2rem;
-        }
-
-        .ar-text strong {
-          color: #1976d2;
-          display: block;
-          margin-bottom: 0.25rem;
-        }
-
-        .ar-text p {
-          margin: 0;
-          color: #6c757d;
-          font-size: 0.875rem;
-        }
-
-        .related-concepts {
-          margin-top: 3rem;
-          padding-top: 2rem;
-          border-top: 1px solid #e9ecef;
-        }
-
-        .related-concepts h4 {
-          margin-bottom: 1rem;
-          color: #495057;
-        }
-
-        .related-list {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1rem;
-        }
-
-        .related-concept-btn {
-          background: white;
-          border: 1px solid #e9ecef;
-          border-radius: 0.5rem;
-          padding: 1rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-align: left;
-          width: 100%;
-        }
-
-        .related-concept-btn:hover {
-          border-color: #007bff;
-          box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
-        }
-
-        .related-concept-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .related-title {
-          font-weight: 500;
-          color: #495057;
-          flex: 1;
-        }
-
-        .related-difficulty {
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.25rem;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .related-difficulty.beginner {
-          background-color: #d4edda;
-          color: #155724;
-        }
-
-        .related-difficulty.intermediate {
-          background-color: #fff3cd;
-          color: #856404;
-        }
-
-        .related-difficulty.advanced {
-          background-color: #f8d7da;
-          color: #721c24;
-        }
-
-        .error-state {
-          text-align: center;
-          padding: 3rem 2rem;
-          color: #dc3545;
-        }
-
-        .error-state h3 {
-          margin-bottom: 1rem;
-          color: #dc3545;
-        }
-
-        .error-state p {
-          color: #6c757d;
-          margin-bottom: 2rem;
-        }
-
-        .retry-btn,
-        .back-btn {
-          background: #007bff;
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          font-weight: 500;
-          margin-top: 1rem;
-          transition: background-color 0.2s ease;
-        }
-
-        .retry-btn:hover,
-        .back-btn:hover {
-          background: #0056b3;
-        }
-
-        .error {
-          background: #f8d7da;
-          color: #721c24;
-          border-radius: 0.5rem;
-          margin: 1rem 0;
-        }
-
-        @media (max-width: 768px) {
-          .concept-view {
-            padding: 0.5rem;
-          }
-
-          .concept-layout {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
-
-          .concept-sidebar {
-            position: static;
-            order: 2;
-          }
-
-          .concept-content {
-            padding: 1rem;
-            order: 1;
-          }
-
-          .title-with-favorite {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-          }
-
-          .concept-meta {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-          }
-
-          .breadcrumb {
-            flex-wrap: wrap;
-          }
-
-          .sidebar-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-          }
-
-          .concept-item-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.25rem;
-          }
-
-          .related-list {
-            grid-template-columns: 1fr;
-          }
-
-          .images-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .back-button {
-            width: 100%;
-            justify-content: center;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .concept-item,
-          .related-concept-btn,
-          .asset-link,
-          .retry-btn,
-          .back-btn,
-          .favorite-indicator {
-            transition: none;
-            animation: none;
-          }
-        }
-      `}</style>
       </div>
     </ErrorBoundary>
   );

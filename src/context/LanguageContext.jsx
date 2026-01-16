@@ -1,37 +1,75 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const LanguageContext = createContext();
 
 // Supported languages with their display names and codes
 const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", nativeName: "English" },
-  { code: "es", name: "Spanish", nativeName: "Español" },
-  { code: "fr", name: "French", nativeName: "Français" },
-  { code: "de", name: "German", nativeName: "Deutsch" },
   { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
-  { code: "bn", name: "Bengali", nativeName: "বাংলা" },
-  { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
-  { code: "te", name: "Telugu", nativeName: "తెలుగు" },
-  { code: "ur", name: "Urdu", nativeName: "اردو" },
-  { code: "zh", name: "Chinese", nativeName: "中文" },
-  { code: "ja", name: "Japanese", nativeName: "日本語" },
-  { code: "ko", name: "Korean", nativeName: "한국어" }
+  { code: "bn", name: "Bengali", nativeName: "বাংলা" }
 ];
 
 const DEFAULT_LANGUAGE = "en";
 const FALLBACK_LANGUAGE = "en";
 
-// Initialize Gemini AI (API key should be set in environment variables)
-let genAI = null;
-try {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (apiKey) {
-    genAI = new GoogleGenerativeAI(apiKey);
+// Google Translate API configuration
+const TRANSLATE_API_KEY = import.meta.env.VITE_TRANSLATE_API_KEY;
+const TRANSLATE_API_URL = "https://translation.googleapis.com/language/translate/v2";
+
+// Static translations for UI elements
+const UI_TRANSLATIONS = {
+  en: {
+    loading: "Loading",
+    error: "Error",
+    notFound: "Not Found",
+    backButton: "Back",
+    searchPlaceholder: "Search...",
+    favorites: "Favorites",
+    profile: "Profile",
+    subjects: "Subjects",
+    topics: "Topics",
+    concepts: "Concepts",
+    difficulty: {
+      beginner: "Beginner",
+      intermediate: "Intermediate",
+      advanced: "Advanced"
+    }
+  },
+  hi: {
+    loading: "लोड हो रहा है",
+    error: "त्रुटि",
+    notFound: "नहीं मिला",
+    backButton: "वापस",
+    searchPlaceholder: "खोजें...",
+    favorites: "पसंदीदा",
+    profile: "प्रोफ़ाइल",
+    subjects: "विषय",
+    topics: "विषय-सूची",
+    concepts: "अवधारणाएं",
+    difficulty: {
+      beginner: "शुरुआती",
+      intermediate: "मध्यवर्ती",
+      advanced: "उन्नत"
+    }
+  },
+  bn: {
+    loading: "লোড হচ্ছে",
+    error: "ত্রুটি",
+    notFound: "পাওয়া যায়নি",
+    backButton: "ফিরে যান",
+    searchPlaceholder: "অনুসন্ধান করুন...",
+    favorites: "প্রিয়",
+    profile: "প্রোফাইল",
+    subjects: "বিষয়",
+    topics: "বিষয়সূচি",
+    concepts: "ধারণা",
+    difficulty: {
+      beginner: "শিক্ষানবিস",
+      intermediate: "মধ্যবর্তী",
+      advanced: "উন্নত"
+    }
   }
-} catch (error) {
-  console.warn("Gemini API not available:", error);
-}
+};
 
 // Translation utilities
 const TranslationUtils = {
@@ -42,12 +80,13 @@ const TranslationUtils = {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        // Check if cache is still valid (7 days for translations)
+        // Check if cache is still valid (30 days for translations)
         const cacheTime = new Date(parsed.timestamp);
         const now = new Date();
         const daysDiff = (now - cacheTime) / (1000 * 60 * 60 * 24);
 
-        if (daysDiff < 7) {
+        if (daysDiff < 30) {
+          console.log(`✅ Using cached translation for ${contentId} in ${language}`);
           return parsed.data;
         } else {
           localStorage.removeItem(cacheKey);
@@ -68,6 +107,7 @@ const TranslationUtils = {
         timestamp: new Date().toISOString()
       };
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+      console.log(`💾 Cached translation for ${contentId} in ${language}`);
     } catch (error) {
       console.error('Error saving translation to cache:', error);
       // Handle storage quota exceeded
@@ -100,6 +140,7 @@ const TranslationUtils = {
       for (let i = 0; i < toRemove; i++) {
         localStorage.removeItem(cacheEntries[i].key);
       }
+      console.log(`🧹 Cleared ${toRemove} old translation cache entries`);
     } catch (error) {
       console.error('Error clearing old translation cache:', error);
     }
@@ -118,70 +159,155 @@ const TranslationUtils = {
     return Math.abs(hash).toString(36);
   },
 
-  // Translate content using Gemini API
-  translateWithGemini: async (content, targetLanguage, context = {}) => {
-    if (!genAI) {
-      throw new Error("Gemini API not available");
+  // Translate text using Google Translate API
+  translateText: async (text, targetLanguage, sourceLanguage = 'en') => {
+    if (!TRANSLATE_API_KEY) {
+      throw new Error("Translation API key not configured");
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const response = await fetch(`${TRANSLATE_API_URL}?key=${TRANSLATE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: text,
+          source: sourceLanguage,
+          target: targetLanguage,
+          format: 'text'
+        })
+      });
 
-      const languageInfo = SUPPORTED_LANGUAGES.find(lang => lang.code === targetLanguage);
-      const targetLanguageName = languageInfo?.name || targetLanguage;
-
-      const prompt = `You are an expert educational content translator specializing in STEM subjects. 
-      
-Translate the following educational content to ${targetLanguageName}. 
-
-IMPORTANT REQUIREMENTS:
-1. Maintain technical accuracy and scientific terminology precision
-2. Adapt explanations for educational clarity while preserving meaning
-3. Keep the same JSON structure in your response
-4. Translate all text fields but keep field names in English
-5. Ensure age-appropriate language for ${context.difficulty || 'intermediate'} level students
-6. Preserve any mathematical formulas, chemical equations, or scientific notation exactly
-
-Context: Subject: ${context.subject || 'General STEM'}, Difficulty: ${context.difficulty || 'intermediate'}
-
-Content to translate:
-${JSON.stringify(content, null, 2)}
-
-Respond with ONLY the translated JSON object, no additional text or explanation.`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      let translatedText = response.text();
-
-      // Parse the JSON response - handle markdown code blocks
-      try {
-        // Remove markdown code block wrappers if present
-        translatedText = translatedText.trim();
-        if (translatedText.startsWith('```json')) {
-          translatedText = translatedText.slice(7);
-        } else if (translatedText.startsWith('```')) {
-          translatedText = translatedText.slice(3);
-        }
-        if (translatedText.endsWith('```')) {
-          translatedText = translatedText.slice(0, -3);
-        }
-        translatedText = translatedText.trim();
-
-        const translatedContent = JSON.parse(translatedText);
-        return {
-          ...translatedContent,
-          translatedBy: "gemini-api",
-          translationQuality: 0.9 // High confidence for Gemini translations
-        };
-      } catch (parseError) {
-        console.error('Failed to parse Gemini translation response:', parseError);
-        console.error('Raw response:', translatedText);
-        throw new Error('Invalid translation response format');
+      if (!response.ok) {
+        throw new Error(`Translation API error: ${response.status}`);
       }
+
+      const data = await response.json();
+      return data.data.translations[0].translatedText;
     } catch (error) {
-      console.error('Gemini translation error:', error);
+      console.error('Translation API error:', error);
       throw error;
     }
+  },
+
+  // Translate content object with smart batching
+  translateContent: async (content, targetLanguage, sourceLanguage = 'en') => {
+    if (!TRANSLATE_API_KEY) {
+      throw new Error("Translation API key not configured");
+    }
+
+    try {
+      // Extract all text fields to translate
+      const textsToTranslate = [];
+      const textMap = {};
+
+      // Helper to extract text recursively
+      const extractTexts = (obj, path = '') => {
+        for (const [key, value] of Object.entries(obj)) {
+          const currentPath = path ? `${path}.${key}` : key;
+          
+          if (typeof value === 'string' && value.trim()) {
+            textsToTranslate.push(value);
+            textMap[textsToTranslate.length - 1] = currentPath;
+          } else if (Array.isArray(value)) {
+            value.forEach((item, index) => {
+              if (typeof item === 'string' && item.trim()) {
+                textsToTranslate.push(item);
+                textMap[textsToTranslate.length - 1] = `${currentPath}[${index}]`;
+              }
+            });
+          } else if (typeof value === 'object' && value !== null) {
+            extractTexts(value, currentPath);
+          }
+        }
+      };
+
+      extractTexts(content);
+
+      if (textsToTranslate.length === 0) {
+        return content;
+      }
+
+      console.log(`🌐 Translating ${textsToTranslate.length} text segments to ${targetLanguage}...`);
+
+      // Batch translate all texts
+      const response = await fetch(`${TRANSLATE_API_URL}?key=${TRANSLATE_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: textsToTranslate,
+          source: sourceLanguage,
+          target: targetLanguage,
+          format: 'text'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Translation API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+      const translations = data.data.translations;
+
+      // Reconstruct the content object with translations
+      const translatedContent = JSON.parse(JSON.stringify(content));
+
+      translations.forEach((translation, index) => {
+        const path = textMap[index];
+        const translatedText = translation.translatedText;
+
+        // Set the translated text at the correct path
+        const pathParts = path.split('.');
+        let current = translatedContent;
+
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          const part = pathParts[i];
+          const arrayMatch = part.match(/(.+)\[(\d+)\]/);
+          
+          if (arrayMatch) {
+            const [, key, idx] = arrayMatch;
+            current = current[key][parseInt(idx)];
+          } else {
+            current = current[part];
+          }
+        }
+
+        const lastPart = pathParts[pathParts.length - 1];
+        const arrayMatch = lastPart.match(/(.+)\[(\d+)\]/);
+        
+        if (arrayMatch) {
+          const [, key, idx] = arrayMatch;
+          current[key][parseInt(idx)] = translatedText;
+        } else {
+          current[lastPart] = translatedText;
+        }
+      });
+
+      console.log(`✅ Translation completed for ${targetLanguage}`);
+      return translatedContent;
+
+    } catch (error) {
+      console.error('Content translation error:', error);
+      throw error;
+    }
+  },
+
+  // Get UI translation
+  getUITranslation: (key, language = DEFAULT_LANGUAGE) => {
+    const translations = UI_TRANSLATIONS[language] || UI_TRANSLATIONS[DEFAULT_LANGUAGE];
+    const keys = key.split('.');
+    let value = translations;
+    
+    for (const k of keys) {
+      value = value?.[k];
+      if (value === undefined) break;
+    }
+    
+    return value || key;
   },
 
   // Get language display name
@@ -199,8 +325,9 @@ Respond with ONLY the translated JSON object, no additional text or explanation.
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState(DEFAULT_LANGUAGE);
   const [fallbackLanguage, setFallbackLanguage] = useState(FALLBACK_LANGUAGE);
-  const [isTranslating, setIsTranslating] = useState(false);
   const [translationError, setTranslationError] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translationQueue, setTranslationQueue] = useState(new Map());
 
   // Load language preference from localStorage on mount
   useEffect(() => {
@@ -252,7 +379,7 @@ export const LanguageProvider = ({ children }) => {
   }, [currentLanguage]);
 
   // Get localized content for a concept/topic
-  const getLocalizedContent = useCallback(async (content, contentId, context = {}) => {
+  const getLocalizedContent = useCallback(async (content, contentId = 'unknown') => {
     // If content already exists in current language, return it
     if (content[currentLanguage]) {
       return {
@@ -262,76 +389,122 @@ export const LanguageProvider = ({ children }) => {
       };
     }
 
-    // If content exists in fallback language, check if we should translate
-    if (content[fallbackLanguage] && currentLanguage !== fallbackLanguage) {
-      const sourceContent = content[fallbackLanguage];
-      const contentHash = TranslationUtils.generateContentHash(sourceContent);
-
-      // Check cache first
-      const cached = TranslationUtils.getCachedTranslation(contentId, currentLanguage, contentHash);
-      if (cached) {
+    // If no source content available, return first available
+    if (!content[fallbackLanguage] && !content.en) {
+      const availableLanguages = Object.keys(content);
+      if (availableLanguages.length > 0) {
+        const firstAvailable = availableLanguages[0];
         return {
-          ...cached,
-          language: currentLanguage,
-          isTranslated: true
+          ...content[firstAvailable],
+          language: firstAvailable,
+          isTranslated: false,
+          isFallback: true,
+          fallbackReason: 'language_unavailable'
         };
       }
+      throw new Error('No content available in any language');
+    }
 
-      // Attempt translation if Gemini API is available
-      if (genAI && !isTranslating) {
-        try {
-          setIsTranslating(true);
-          setTranslationError(null);
+    // Get source content (prefer fallback language, then English)
+    const sourceContent = content[fallbackLanguage] || content.en;
+    const sourceLanguage = content[fallbackLanguage] ? fallbackLanguage : 'en';
+    
+    // Generate content hash for caching
+    const contentHash = TranslationUtils.generateContentHash(sourceContent);
 
-          const translated = await TranslationUtils.translateWithGemini(
-            sourceContent,
-            currentLanguage,
-            context
-          );
+    // Check cache first
+    const cached = TranslationUtils.getCachedTranslation(contentId, currentLanguage, contentHash);
+    if (cached) {
+      return {
+        ...cached,
+        language: currentLanguage,
+        isTranslated: true,
+        fromCache: true
+      };
+    }
 
-          // Cache the translation
-          TranslationUtils.saveTranslationToCache(contentId, currentLanguage, contentHash, translated);
-
-          return {
-            ...translated,
-            language: currentLanguage,
-            isTranslated: true
-          };
-        } catch (error) {
-          console.error('Translation failed:', error);
-          setTranslationError(error.message);
-          // Fall through to return fallback content
-        } finally {
-          setIsTranslating(false);
-        }
-      }
-
-      // Return fallback content with notification
+    // Check if translation API is available
+    if (!TRANSLATE_API_KEY) {
+      console.warn('Translation API key not configured, using fallback');
       return {
         ...sourceContent,
-        language: fallbackLanguage,
+        language: sourceLanguage,
         isTranslated: false,
         isFallback: true,
-        fallbackReason: isTranslating ? 'translating' : (genAI ? 'translation_failed' : 'translation_unavailable')
+        fallbackReason: 'translation_unavailable'
       };
     }
 
-    // If no content available in current or fallback language, return first available
-    const availableLanguages = Object.keys(content);
-    if (availableLanguages.length > 0) {
-      const firstAvailable = availableLanguages[0];
-      return {
-        ...content[firstAvailable],
-        language: firstAvailable,
-        isTranslated: false,
-        isFallback: true,
-        fallbackReason: 'language_unavailable'
-      };
+    // Check if already translating this content
+    const queueKey = `${contentId}_${currentLanguage}`;
+    if (translationQueue.has(queueKey)) {
+      console.log(`⏳ Translation already in progress for ${contentId}`);
+      return translationQueue.get(queueKey);
     }
 
-    // No content available at all
-    throw new Error('No content available in any language');
-  }, [currentLanguage, fallbackLanguage, isTranslating]);
+    // Start translation
+    setIsTranslating(true);
+    setTranslationError(null);
+
+    const translationPromise = (async () => {
+      try {
+        console.log(`🔄 Translating ${contentId} from ${sourceLanguage} to ${currentLanguage}...`);
+        
+        const translated = await TranslationUtils.translateContent(
+          sourceContent,
+          currentLanguage,
+          sourceLanguage
+        );
+
+        // Cache the translation
+        TranslationUtils.saveTranslationToCache(contentId, currentLanguage, contentHash, translated);
+
+        const result = {
+          ...translated,
+          language: currentLanguage,
+          isTranslated: true,
+          fromCache: false
+        };
+
+        // Remove from queue
+        setTranslationQueue(prev => {
+          const newQueue = new Map(prev);
+          newQueue.delete(queueKey);
+          return newQueue;
+        });
+
+        return result;
+
+      } catch (error) {
+        console.error('Translation failed:', error);
+        setTranslationError(error.message);
+
+        // Remove from queue
+        setTranslationQueue(prev => {
+          const newQueue = new Map(prev);
+          newQueue.delete(queueKey);
+          return newQueue;
+        });
+
+        // Return fallback content
+        return {
+          ...sourceContent,
+          language: sourceLanguage,
+          isTranslated: false,
+          isFallback: true,
+          fallbackReason: 'translation_failed',
+          error: error.message
+        };
+      } finally {
+        setIsTranslating(false);
+      }
+    })();
+
+    // Add to queue
+    setTranslationQueue(prev => new Map(prev.set(queueKey, translationPromise)));
+
+    return translationPromise;
+  }, [currentLanguage, fallbackLanguage, translationQueue]);
 
   // Clear all translation cache
   const clearTranslationCache = useCallback(() => {
@@ -355,9 +528,10 @@ export const LanguageProvider = ({ children }) => {
     // Utilities
     getLanguageDisplayName: TranslationUtils.getLanguageDisplayName,
     isLanguageSupported: TranslationUtils.isLanguageSupported,
+    getUITranslation: TranslationUtils.getUITranslation,
 
     // API availability
-    isGeminiAvailable: !!genAI
+    isTranslateApiAvailable: !!TRANSLATE_API_KEY
   }), [
     currentLanguage,
     fallbackLanguage,

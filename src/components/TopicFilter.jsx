@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { IoSearchOutline, IoCloseCircleOutline, IoHeart, IoHeartOutline, IoFilterOutline } from 'react-icons/io5';
 import { useNavigation } from '../context/NavigationContext';
 
 export default function TopicFilter({ 
@@ -10,12 +11,10 @@ export default function TopicFilter({
   const filterKey = `topic-filter-${subjectId}`;
   const onFilterChangeRef = useRef(onFilterChange);
   
-  // Update ref when callback changes
   useEffect(() => {
     onFilterChangeRef.current = onFilterChange;
   }, [onFilterChange]);
   
-  // Initialize filters from navigation state or props
   const [filters, setFilters] = useState(() => {
     const savedFilters = getFilterState(filterKey);
     return {
@@ -25,7 +24,6 @@ export default function TopicFilter({
     };
   });
 
-  // Save filter state whenever filters change
   useEffect(() => {
     saveFilterState(filterKey, filters);
     if (onFilterChangeRef.current) {
@@ -33,224 +31,91 @@ export default function TopicFilter({
     }
   }, [filters, filterKey, saveFilterState]);
 
-  const handleDifficultyChange = (difficulty) => {
-    setFilters(prev => ({
-      ...prev,
-      difficulty
-    }));
-  };
-
-  const handleSearchChange = (searchTerm) => {
-    setFilters(prev => ({
-      ...prev,
-      searchTerm
-    }));
-  };
-
-  const handleFavoritesToggle = () => {
-    setFilters(prev => ({
-      ...prev,
-      showFavoritesOnly: !prev.showFavoritesOnly
-    }));
-  };
-
-  const clearFilters = () => {
-    const clearedFilters = {
-      difficulty: 'all',
-      searchTerm: '',
-      showFavoritesOnly: false
-    };
-    setFilters(clearedFilters);
-  };
-
   const hasActiveFilters = filters.difficulty !== 'all' || 
                           filters.searchTerm !== '' || 
                           filters.showFavoritesOnly;
 
   return (
-    <div className="topic-filter">
-      <div className="filter-section">
-        <label className="filter-label">Filter by difficulty:</label>
-        <div className="difficulty-buttons">
-          {['all', 'beginner', 'intermediate', 'advanced'].map(level => (
-            <button
-              key={level}
-              className={`difficulty-btn ${filters.difficulty === level ? 'active' : ''}`}
-              onClick={() => handleDifficultyChange(level)}
-            >
-              {level === 'all' ? 'All Levels' : level.charAt(0).toUpperCase() + level.slice(1)}
-            </button>
-          ))}
+    <div className="relative group bg-white/70 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] p-6 md:p-8 shadow-2xl shadow-slate-200/50 transition-all duration-500 hover:bg-white/80">
+      
+      {/* Decorative Shine Effect */}
+      <div className="absolute inset-0 rounded-[2.5rem] bg-linear-to-br from-white/40 to-transparent pointer-events-none" />
+
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+        
+        {/* Search Section */}
+        <div className="lg:col-span-4 space-y-3">
+          <label className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
+            <IoSearchOutline className="text-sm" /> Search Topics
+          </label>
+          <div className="relative group/input">
+            <input
+              type="text"
+              placeholder="Start typing..."
+              value={filters.searchTerm}
+              onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+              className="w-full bg-white/50 border border-slate-200/60 rounded-2xl py-3.5 pl-5 pr-12 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/40 transition-all"
+            />
+            {filters.searchTerm && (
+              <button 
+                onClick={() => setFilters(prev => ({ ...prev, searchTerm: '' }))}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500 transition-colors"
+              >
+                <IoCloseCircleOutline className="text-xl" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="filter-section">
-        <label className="filter-label" htmlFor="topic-search">Search topics:</label>
-        <input
-          id="topic-search"
-          type="text"
-          placeholder="Search by topic name..."
-          value={filters.searchTerm}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="search-input"
-        />
-      </div>
+        {/* Difficulty Section */}
+        <div className="lg:col-span-5 space-y-3">
+          <label className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
+            <IoFilterOutline className="text-sm" /> Difficulty
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {['all', 'beginner', 'intermediate', 'advanced'].map(level => (
+              <button
+                key={level}
+                onClick={() => setFilters(prev => ({ ...prev, difficulty: level }))}
+                className={`
+                  px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border
+                  ${filters.difficulty === level 
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20 -translate-y-1' 
+                    : 'bg-white/50 border-slate-200/60 text-slate-500 hover:border-slate-300 hover:bg-white'}
+                `}
+              >
+                {level === 'all' ? 'Universal' : level}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <div className="filter-section">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={filters.showFavoritesOnly}
-            onChange={handleFavoritesToggle}
-            className="favorites-checkbox"
-          />
-          <span className="checkbox-text">Show favorites only</span>
-        </label>
-      </div>
-
-      {hasActiveFilters && (
-        <div className="filter-actions">
-          <button onClick={clearFilters} className="clear-filters-btn">
-            Clear all filters
+        {/* Favorites & Actions Section */}
+        <div className="lg:col-span-3 flex flex-wrap lg:flex-nowrap items-center gap-4">
+          <button
+            onClick={() => setFilters(prev => ({ ...prev, showFavoritesOnly: !prev.showFavoritesOnly }))}
+            className={`
+              flex-1 flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-bold transition-all duration-300 border
+              ${filters.showFavoritesOnly 
+                ? 'bg-rose-50 text-rose-600 border-rose-200 shadow-inner' 
+                : 'bg-white/50 border-slate-200/60 text-slate-600 hover:border-rose-200 hover:text-rose-500'}
+            `}
+          >
+            {filters.showFavoritesOnly ? <IoHeart className="text-lg" /> : <IoHeartOutline className="text-lg" />}
+            <span>Favorites</span>
           </button>
+
+          {hasActiveFilters && (
+            <button 
+              onClick={() => setFilters({ difficulty: 'all', searchTerm: '', showFavoritesOnly: false })}
+              className="flex items-center justify-center p-3.5 rounded-2xl bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-300"
+              title="Reset Filters"
+            >
+              <IoRefreshOutline className="text-xl animate-reverse-spin" />
+            </button>
+          )}
         </div>
-      )}
-
-      <style jsx>{`
-        .topic-filter {
-          background: white;
-          border: 1px solid #e9ecef;
-          border-radius: 0.5rem;
-          padding: 1.5rem;
-          margin-bottom: 2rem;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .filter-section {
-          margin-bottom: 1.5rem;
-        }
-
-        .filter-section:last-child {
-          margin-bottom: 0;
-        }
-
-        .filter-label {
-          display: block;
-          font-weight: 500;
-          color: #495057;
-          margin-bottom: 0.75rem;
-          font-size: 0.875rem;
-        }
-
-        .difficulty-buttons {
-          display: flex;
-          gap: 0.5rem;
-          flex-wrap: wrap;
-        }
-
-        .difficulty-btn {
-          padding: 0.5rem 1rem;
-          border: 1px solid #dee2e6;
-          background: white;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-
-        .difficulty-btn:hover {
-          border-color: #007bff;
-          color: #007bff;
-        }
-
-        .difficulty-btn.active {
-          background-color: #007bff;
-          color: white;
-          border-color: #007bff;
-        }
-
-        .search-input {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #dee2e6;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          transition: border-color 0.2s ease;
-        }
-
-        .search-input:focus {
-          outline: none;
-          border-color: #007bff;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        .checkbox-label {
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          font-weight: normal;
-          margin-bottom: 0;
-        }
-
-        .favorites-checkbox {
-          margin-right: 0.75rem;
-          width: 1rem;
-          height: 1rem;
-          cursor: pointer;
-        }
-
-        .checkbox-text {
-          font-size: 0.875rem;
-          color: #495057;
-        }
-
-        .filter-actions {
-          padding-top: 1rem;
-          border-top: 1px solid #e9ecef;
-          margin-top: 1rem;
-        }
-
-        .clear-filters-btn {
-          padding: 0.5rem 1rem;
-          background: #6c757d;
-          color: white;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: background-color 0.2s ease;
-        }
-
-        .clear-filters-btn:hover {
-          background: #545b62;
-        }
-
-        @media (max-width: 768px) {
-          .topic-filter {
-            padding: 1rem;
-            margin-bottom: 1rem;
-          }
-
-          .difficulty-buttons {
-            flex-direction: column;
-          }
-
-          .difficulty-btn {
-            width: 100%;
-            text-align: center;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .difficulty-btn,
-          .search-input,
-          .clear-filters-btn {
-            transition: none;
-          }
-        }
-      `}</style>
+      </div>
     </div>
   );
 }

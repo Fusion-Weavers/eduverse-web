@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { IoHeart, IoHeartOutline, IoHourglassOutline, IoCloudUploadOutline } from "react-icons/io5";
+import { 
+  IoHeart, 
+  IoHeartOutline, 
+  IoHourglassOutline, 
+  IoCloudUploadOutline 
+} from "react-icons/io5";
 import { useFavorites } from "../context/FavoritesContext";
-import "./FavoriteButton.css";
 
 const FavoriteButton = ({
   itemId,
@@ -10,7 +14,7 @@ const FavoriteButton = ({
   showLabel = false,
   className = '',
   disabled = false,
-  onToggle = null // Optional callback when favorite status changes
+  onToggle = null
 }) => {
   const {
     isTopicFavorited,
@@ -22,21 +26,16 @@ const FavoriteButton = ({
 
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Determine if item is favorited based on type
   const isFavorited = itemType === 'topic'
     ? isTopicFavorited(itemId)
     : isConceptFavorited(itemId);
 
-  // Handle favorite toggle
   const handleToggle = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (disabled) return;
 
-    // Start animation
     setIsAnimating(true);
-
     try {
       let newStatus;
       if (itemType === 'topic') {
@@ -44,69 +43,62 @@ const FavoriteButton = ({
       } else {
         newStatus = toggleConceptFavorite(itemId);
       }
-
-      // Call optional callback
-      if (onToggle) {
-        onToggle(newStatus, itemId, itemType);
-      }
+      if (onToggle) onToggle(newStatus, itemId, itemType);
     } catch (error) {
       console.error('Error toggling favorite:', error);
     }
-
-    // End animation after a short delay
-    setTimeout(() => setIsAnimating(false), 300);
+    setTimeout(() => setIsAnimating(false), 450); // Slightly longer for the spring effect
   };
 
-  // Determine button classes
-  const buttonClasses = [
-    'favorite-button',
-    `favorite-button--${size}`,
-    isFavorited ? 'favorite-button--favorited' : 'favorite-button--not-favorited',
-    isAnimating ? 'favorite-button--animating' : '',
-    disabled ? 'favorite-button--disabled' : '',
-    className
-  ].filter(Boolean).join(' ');
+  // Size Mapping
+  const sizeClasses = {
+    small: 'p-1.5 text-base',
+    medium: 'p-2.5 text-xl',
+    large: 'p-3.5 text-2xl'
+  };
 
-  // Determine icon based on favorite status
-  const icon = isFavorited ? <IoHeart aria-hidden="true" /> : <IoHeartOutline aria-hidden="true" />;
-
-  // Determine label text
-  const labelText = isFavorited
-    ? `Remove from favorites`
-    : `Add to favorites`;
-
-  // Show sync status indicator if there are pending changes
   const showSyncIndicator = syncStatus === 'pending' || syncStatus === 'syncing';
 
   return (
     <button
-      className={buttonClasses}
       onClick={handleToggle}
       disabled={disabled}
-      title={labelText}
-      aria-label={labelText}
       type="button"
+      className={`
+        relative flex items-center gap-2 rounded-2xl transition-all duration-300
+        ${sizeClasses[size]}
+        ${isFavorited 
+          ? 'bg-rose-500/10 text-rose-500 shadow-sm shadow-rose-500/10' 
+          : 'bg-white/40 backdrop-blur-md border border-white/60 text-slate-400 hover:text-slate-600 hover:bg-white/80'}
+        ${isAnimating ? 'scale-125' : 'scale-100'}
+        ${disabled ? 'opacity-40 cursor-not-allowed' : 'active:scale-90'}
+        ${className}
+      `}
+      title={isFavorited ? "Remove from favorites" : "Add to favorites"}
     >
-      <span className="favorite-button__icon" role="img" aria-hidden="true">
-        {icon}
+      {/* Main Heart Icon */}
+      <span className={`
+        transition-transform duration-500 
+        ${isAnimating ? 'animate-ping opacity-75' : ''}
+        ${isFavorited ? 'scale-110' : 'scale-100'}
+      `}>
+        {isFavorited ? <IoHeart /> : <IoHeartOutline />}
       </span>
 
+      {/* Label Text */}
       {showLabel && (
-        <span className="favorite-button__label">
+        <span className="text-xs font-black uppercase tracking-widest px-1">
           {isFavorited ? 'Favorited' : 'Favorite'}
         </span>
       )}
 
+      {/* Sync Status Floating Badge */}
       {showSyncIndicator && (
-        <span
-          className="favorite-button__sync-indicator"
-          title={syncStatus === 'syncing' ? 'Syncing...' : 'Pending sync'}
-          aria-label={syncStatus === 'syncing' ? 'Syncing favorites' : 'Favorites pending sync'}
-        >
+        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[10px] text-white ring-2 ring-white">
           {syncStatus === 'syncing' ? (
-            <IoHourglassOutline aria-hidden="true" />
+            <IoHourglassOutline className="animate-spin" />
           ) : (
-            <IoCloudUploadOutline aria-hidden="true" />
+            <IoCloudUploadOutline />
           )}
         </span>
       )}

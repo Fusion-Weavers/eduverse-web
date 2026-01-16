@@ -99,9 +99,6 @@
   display: inline;
 }
 
-cursor: not-allowed;
-pointer-events: none;
-}
 
 /* Animation states */
 .favorite-button--animating .favorite-button__icon {
@@ -193,8 +190,8 @@ pointer-events: none;
     color: white;
   }
 }
-}
-}
+
+
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {

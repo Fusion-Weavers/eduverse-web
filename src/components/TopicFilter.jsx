@@ -39,7 +39,7 @@ export default function TopicFilter({
     <div className="relative group bg-white/70 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] p-6 md:p-8 shadow-2xl shadow-slate-200/50 transition-all duration-500 hover:bg-white/80">
       
       {/* Decorative Shine Effect */}
-      <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 rounded-[2.5rem] bg-linear-to-br from-white/40 to-transparent pointer-events-none" />
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
         

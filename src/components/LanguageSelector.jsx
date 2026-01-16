@@ -102,7 +102,7 @@ export default function LanguageSelector({
 
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm transition-all duration-300 ${isOpen ? 'ring-2 ring-indigo-500/20 translate-y-[-2px] bg-white' : 'hover:bg-white/90'}`}
+        className={`w-full flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm transition-all duration-300 ${isOpen ? 'ring-2 ring-indigo-500/20 translate-y-0.5 bg-white' : 'hover:bg-white/90'}`}
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
@@ -119,7 +119,7 @@ export default function LanguageSelector({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 right-0 mt-4 z-50 bg-white/80 backdrop-blur-2xl border border-white/50 rounded-[2rem] shadow-2xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="absolute left-0 right-0 mt-4 z-50 bg-white/80 backdrop-blur-2xl border border-white/50 rounded-4xl shadow-2xl shadow-slate-200/50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
             
             {/* Search Header */}
             <div className="p-4 border-b border-slate-100">

@@ -1,5 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
-import { IoCheckmarkCircleOutline, IoCloseCircleOutline, IoHourglassOutline, IoRefreshOutline, IoWarningOutline } from "react-icons/io5";
+import { 
+  IoCheckmarkCircleOutline, 
+  IoCloseCircleOutline, 
+  IoHourglassOutline, 
+  IoRefreshOutline, 
+  IoWarningOutline,
+  IoPersonOutline,
+  IoTimeOutline,
+  IoBookOutline,
+  IoHeartOutline,
+  IoSettingsOutline,
+  IoCloudOfflineOutline,
+  IoLogOutOutline,
+  IoTrashOutline
+} from "react-icons/io5";
 import Navbar from "../components/Navbar";
 import LanguageSelector from "../components/LanguageSelector";
 import { useAuth } from "../context/AuthContext";
@@ -71,215 +85,260 @@ export default function Profile() {
     };
   };
 
+  const handleClearCache = () => {
+    if (window.confirm("Are you sure you want to clear the translation cache? This will force fresh translations.")) {
+        const keys = Object.keys(localStorage);
+        const translationKeys = keys.filter(key => key.startsWith('translation_'));
+        translationKeys.forEach(key => localStorage.removeItem(key));
+        alert('Translation cache cleared successfully!');
+    }
+  };
+
   // Get organized favorites
-  const favoritesBySubject = getFavoritesBySubject(subjects, topics, concepts);
+  const favoritesBySubject = useMemo(() => {
+      return getFavoritesBySubject(subjects, topics, concepts);
+  }, [subjects, topics, concepts, getFavoritesBySubject]);
+  
   const hasFavorites = Object.keys(favoritesBySubject).length > 0;
 
-  return (
-    <>
-      <Navbar />
+  // --- Sub-Components for Cleanliness ---
 
-      <div className="page">
-        <h2>Profile</h2>
-        <p>Manage your account and preferences</p>
-
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div className="avatar">
-            {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h3>{user.displayName || user.email}</h3>
-            <p className="muted">Student</p>
-            {userStats.lastActivity && (
-              <p className="muted">
-                Last active: {userStats.lastActivity.toLocaleDateString()}
-              </p>
-            )}
-          </div>
+  const StatCard = ({ icon: Icon, value, label, colorClass }) => (
+    <div className="group relative overflow-hidden rounded-2xl border border-white/60 bg-white/60 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-xl ${colorClass}`} />
+      <div className="relative z-10 flex items-center gap-4">
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${colorClass.replace('bg-', 'bg-opacity-10 bg-')} text-xl`}>
+            <Icon className={colorClass.replace('bg-', 'text-')} />
         </div>
-
-        {/* Profile Cards */}
-        <div className="profile-grid">
-          {/* Account Info */}
-          <div className="profile-card">
-            <h4>Account Information</h4>
-            <p><b>Email:</b> {user.email}</p>
-            {user.displayName && <p><b>Name:</b> {user.displayName}</p>}
-            <p><b>Role:</b> Learner</p>
-            <p><b>Member since:</b> {user.metadata?.creationTime ?
-              new Date(user.metadata.creationTime).toLocaleDateString() : 'Unknown'}</p>
-          </div>
-
-          {/* User Statistics */}
-          <div className="profile-card">
-            <h4>Learning Statistics</h4>
-            <div className="stats-grid">
-              <div className="stat-item">
-                <span className="stat-number">{userStats.topicsViewed}</span>
-                <span className="stat-label">Topics Viewed</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{userStats.conceptsRead}</span>
-                <span className="stat-label">Concepts Read</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{userStats.favoriteCount}</span>
-                <span className="stat-label">Favorites</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{Math.round(userStats.totalReadTime / 60)}</span>
-                <span className="stat-label">Minutes Read</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Language Preference */}
-          <div className="profile-card">
-            <h4>Language Preference</h4>
-            <LanguageSelector
-              variant="dropdown"
-              showLabel={false}
-            />
-            <div className="language-status">
-              <p className="hint">
-                Current language: <strong>{getLanguageDisplayName(currentLanguage)}</strong>
-              </p>
-              {isGeminiAvailable ? (
-                <p className="hint">
-                  <IoCheckmarkCircleOutline aria-hidden="true" /> Content will be translated automatically using AI when needed.
-                </p>
-              ) : (
-                <p className="hint">
-                  <IoWarningOutline aria-hidden="true" /> Only pre-translated content is available. Set VITE_GEMINI_API_KEY for AI translation.
-                </p>
-              )}
-              {translationError && (
-                <p className="hint" style={{ color: '#dc2626' }}>
-                  <IoCloseCircleOutline aria-hidden="true" /> Translation error: {translationError}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Sync Status */}
-          <div className="profile-card">
-            <h4>Sync Status</h4>
-            <div className="sync-status">
-              {syncStatus === 'synced' && (
-                <p className="hint">
-                  <IoCheckmarkCircleOutline aria-hidden="true" /> All data synchronized
-                </p>
-              )}
-              {syncStatus === 'syncing' && (
-                <p className="hint">
-                  <IoRefreshOutline aria-hidden="true" /> Synchronizing data...
-                </p>
-              )}
-              {syncStatus === 'pending' && (
-                <p className="hint">
-                  <IoHourglassOutline aria-hidden="true" /> {getPendingActionsCount()} actions pending sync
-                </p>
-              )}
-            </div>
-            <button
-              className="retry-btn"
-              onClick={() => {
-                // Clear translation cache
-                const keys = Object.keys(localStorage);
-                const translationKeys = keys.filter(key => key.startsWith('translation_'));
-                translationKeys.forEach(key => localStorage.removeItem(key));
-                alert('Translation cache cleared successfully!');
-              }}
-            >
-              Clear Translation Cache
-            </button>
-            <p className="hint">
-              Clear cached translations to force fresh translations from the AI service.
-            </p>
-          </div>
-        </div>
-
-        {/* Favorites Section */}
-        <div className="favorites-section">
-          <h3>My Favorites</h3>
-          {hasFavorites ? (
-            <div className="favorites-by-subject">
-              {Object.entries(favoritesBySubject).map(([subjectId, subjectData]) => (
-                <div key={subjectId} className="subject-favorites">
-                  {(() => {
-                    const SubjectIcon = getSubjectIcon(subjectData.subject.icon);
-                    return (
-                      <h4 className="subject-title">
-                        <span className="subject-icon" aria-hidden="true"><SubjectIcon /></span>
-                        {subjectData.subject.name}
-                      </h4>
-                    );
-                  })()}
-
-                  {/* Favorite Topics */}
-                  {subjectData.topics.length > 0 && (
-                    <div className="favorite-topics">
-                      <h5>Topics ({subjectData.topics.length})</h5>
-                      <div className="favorite-items">
-                        {subjectData.topics.map(topic => (
-                          <div key={topic.id} className="favorite-item">
-                            <a
-                              href={`/subjects/${topic.subjectId}?topic=${topic.id}`}
-                              className="favorite-link"
-                            >
-                              <div className="favorite-info">
-                                <span className="favorite-title">{topic.name}</span>
-                                <span className="favorite-meta">
-                                  {topic.conceptCount} concepts • {topic.difficulty}
-                                </span>
-                              </div>
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Favorite Concepts */}
-                  {subjectData.concepts.length > 0 && (
-                    <div className="favorite-concepts">
-                      <h5>Concepts ({subjectData.concepts.length})</h5>
-                      <div className="favorite-items">
-                        {subjectData.concepts.map(concept => (
-                          <div key={concept.id} className="favorite-item">
-                            <a
-                              href={`/concept/${concept.id}`}
-                              className="favorite-link"
-                            >
-                              <div className="favorite-info">
-                                <span className="favorite-title">{concept.title}</span>
-                                <span className="favorite-meta">
-                                  {concept.topicName} • {concept.estimatedReadTime} min read
-                                </span>
-                              </div>
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="no-favorites">
-              <p>You haven't saved any favorites yet.</p>
-              <p className="hint">
-                Browse subjects and topics to start building your collection of favorite content.
-              </p>
-              <a href="/subjects" className="cta-button">
-                Explore Subjects
-              </a>
-            </div>
-          )}
+        <div>
+          <p className="text-3xl font-black tracking-tight text-slate-900">{value}</p>
+          <p className="text-sm font-medium text-slate-500">{label}</p>
         </div>
       </div>
-    </>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      <Navbar />
+
+      {/* Ambient Background Decorations */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[20%] h-[500px] w-[500px] rounded-full bg-indigo-300/20 blur-[100px]" />
+        <div className="absolute bottom-[10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-blue-300/20 blur-[100px]" />
+      </div>
+
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        
+        {/* Page Header */}
+        <div className="mb-12">
+          <h2 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Profile</h2>
+          <p className="mt-2 text-lg text-slate-500">Manage your account settings and view your learning progress.</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          
+          {/* LEFT COLUMN: User Info & Settings (4 cols) */}
+          <div className="space-y-8 lg:col-span-4">
+            
+            {/* Identity Card */}
+            <div className="rounded-3xl border border-white/60 bg-white/70 p-8 text-center shadow-lg backdrop-blur-2xl">
+              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-slate-200 to-slate-100 ring-4 ring-white shadow-inner">
+                <span className="text-4xl font-bold text-slate-700">
+                  {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">{user.displayName || "Learner"}</h3>
+              <p className="text-sm font-medium text-slate-500">{user.email}</p>
+              
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-700">
+                  Student
+                </span>
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                  Member since {user.metadata?.creationTime ? new Date(user.metadata.creationTime).getFullYear() : '2025'}
+                </span>
+              </div>
+            </div>
+
+            {/* Settings Panel */}
+            <div className="rounded-3xl border border-white/60 bg-white/70 p-6 shadow-sm backdrop-blur-xl">
+               <div className="mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <IoSettingsOutline className="text-slate-400" />
+                  <h4 className="font-bold text-slate-900">Preferences</h4>
+               </div>
+
+               {/* Language */}
+               <div className="mb-6">
+                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Language</label>
+                 <div className="relative">
+                   <LanguageSelector variant="dropdown" showLabel={false} />
+                 </div>
+                 <div className="mt-3 space-y-2">
+                    {isGeminiAvailable ? (
+                        <div className="flex items-start gap-2 text-xs text-emerald-600">
+                            <IoCheckmarkCircleOutline className="mt-0.5 text-lg" />
+                            <span>AI Translation Active</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-start gap-2 text-xs text-amber-600">
+                            <IoWarningOutline className="mt-0.5 text-lg" />
+                            <span>Using pre-translated content only</span>
+                        </div>
+                    )}
+                 </div>
+               </div>
+
+               {/* Sync Status */}
+               <div className="mb-6">
+                 <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Cloud Sync</label>
+                 <div className={`flex items-center justify-between rounded-xl border p-3 ${
+                    syncStatus === 'synced' ? 'border-emerald-100 bg-emerald-50/50' : 
+                    syncStatus === 'syncing' ? 'border-blue-100 bg-blue-50/50' : 
+                    'border-amber-100 bg-amber-50/50'
+                 }`}>
+                    <div className="flex items-center gap-3">
+                        {syncStatus === 'synced' && <IoCheckmarkCircleOutline className="text-xl text-emerald-600" />}
+                        {syncStatus === 'syncing' && <IoRefreshOutline className="animate-spin text-xl text-blue-600" />}
+                        {syncStatus === 'pending' && <IoCloudOfflineOutline className="text-xl text-amber-600" />}
+                        
+                        <div className="flex flex-col">
+                            <span className={`text-sm font-bold ${
+                                syncStatus === 'synced' ? 'text-emerald-700' : 
+                                syncStatus === 'syncing' ? 'text-blue-700' : 
+                                'text-amber-700'
+                            }`}>
+                                {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Pending'}
+                            </span>
+                            {syncStatus === 'pending' && (
+                                <span className="text-xs text-amber-600">{getPendingActionsCount()} actions queued</span>
+                            )}
+                        </div>
+                    </div>
+                 </div>
+               </div>
+
+               {/* Danger Zone / Actions */}
+               <div className="pt-4 border-t border-slate-100">
+                  <button 
+                    onClick={handleClearCache}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    <IoTrashOutline /> Clear Cache
+                  </button>
+               </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Stats & Favorites (8 cols) */}
+          <div className="space-y-8 lg:col-span-8">
+            
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard 
+                icon={IoBookOutline} 
+                value={userStats.topicsViewed} 
+                label="Topics Viewed" 
+                colorClass="bg-blue-500" 
+              />
+              <StatCard 
+                icon={IoCheckmarkCircleOutline} 
+                value={userStats.conceptsRead} 
+                label="Concepts Read" 
+                colorClass="bg-emerald-500" 
+              />
+              <StatCard 
+                icon={IoTimeOutline} 
+                value={Math.round(userStats.totalReadTime / 60)} 
+                label="Minutes Read" 
+                colorClass="bg-purple-500" 
+              />
+              <StatCard 
+                icon={IoHeartOutline} 
+                value={userStats.favoriteCount} 
+                label="Favorites" 
+                colorClass="bg-rose-500" 
+              />
+            </div>
+
+            {/* Favorites Collection */}
+            <div className="rounded-3xl border border-white/60 bg-white/70 p-8 shadow-sm backdrop-blur-xl">
+              <div className="mb-8 flex items-end justify-between">
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900">Your Collection</h3>
+                {hasFavorites && (
+                    <a href="/favorites" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline">
+                        View Full List
+                    </a>
+                )}
+              </div>
+
+              {!hasFavorites ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 py-12 text-center">
+                   <IoHeartOutline className="mb-3 text-4xl text-slate-300" />
+                   <p className="text-slate-500">You haven't saved any favorites yet.</p>
+                   <a href="/subjects" className="mt-4 rounded-full bg-slate-900 px-6 py-2 text-sm font-bold text-white transition-transform hover:scale-105">
+                     Explore Content
+                   </a>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {Object.entries(favoritesBySubject).map(([subjectId, subjectData]) => {
+                    const SubjectIcon = getSubjectIcon(subjectData.subject.icon);
+                    return (
+                        <div key={subjectId} className="border-b border-slate-100 pb-8 last:border-0 last:pb-0">
+                            {/* Subject Title */}
+                            <h4 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-800">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-slate-900/5 text-slate-600">
+                                    <SubjectIcon />
+                                </span>
+                                {subjectData.subject.name}
+                            </h4>
+                            
+                            {/* Combined Grid for Topics & Concepts */}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {/* Topics */}
+                                {subjectData.topics.map(topic => (
+                                    <a 
+                                        key={topic.id}
+                                        href={`/subjects/${topic.subjectId}?topic=${topic.id}`}
+                                        className="group block rounded-xl border border-slate-200/60 bg-white p-4 transition-all hover:-translate-y-1 hover:border-indigo-200 hover:shadow-md"
+                                    >
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-xs font-bold uppercase tracking-wide text-indigo-600">Topic</span>
+                                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                                                topic.difficulty === 'beginner' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                            }`}>{topic.difficulty}</span>
+                                        </div>
+                                        <h5 className="font-bold text-slate-900 group-hover:text-indigo-700">{topic.name}</h5>
+                                        <p className="text-xs text-slate-500 mt-1">{topic.conceptCount} concepts</p>
+                                    </a>
+                                ))}
+
+                                {/* Concepts */}
+                                {subjectData.concepts.map(concept => (
+                                    <a 
+                                        key={concept.id}
+                                        href={`/concept/${concept.id}`}
+                                        className="group block rounded-xl border border-slate-200/60 bg-white p-4 transition-all hover:-translate-y-1 hover:border-purple-200 hover:shadow-md"
+                                    >
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-xs font-bold uppercase tracking-wide text-purple-600">Concept</span>
+                                            <span className="text-[10px] text-slate-400 font-medium">{concept.estimatedReadTime} min</span>
+                                        </div>
+                                        <h5 className="font-bold text-slate-900 group-hover:text-purple-700">{concept.title}</h5>
+                                        <p className="text-xs text-slate-500 mt-1">in {concept.topicName}</p>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

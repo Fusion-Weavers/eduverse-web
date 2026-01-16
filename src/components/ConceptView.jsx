@@ -495,7 +495,7 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                   )}
 
                   {selectedConcept.arEnabled && !selectedConcept.modelUrl && !selectedConcept.embedUrl && (
-                    <div className="my-8 p-6 rounded-xl border bg-gradient-to-r from-blue-50 to-purple-50">
+                    <div className="my-8 p-6 rounded-xl border bg-linear-to-r from-blue-50 to-purple-50">
                       <div className="flex items-center gap-3">
                         <IoGlassesOutline className="text-2xl" />
                         <div>

@@ -71,8 +71,8 @@ export default function TopicList({ subjectId, onTopicSelect }) {
     <ErrorBoundary>
       <div className="relative min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Ambient Backgrounds */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-100/50 rounded-full blur-[120px] -z-10" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-100/50 rounded-full blur-[120px] -z-10" />
+        <div className="absolute top-0 right-0 w-500px h-500px bg-indigo-100/50 rounded-full blur-[120px] -z-10" />
+        <div className="absolute bottom-0 left-0 w-500px h-500px bg-purple-100/50 rounded-full blur-[120px] -z-10" />
 
         <div className="max-w-7xl mx-auto space-y-12">
           {/* Header Section */}
@@ -116,7 +116,7 @@ export default function TopicList({ subjectId, onTopicSelect }) {
               <div
                 key={topic.id}
                 onClick={(e) => !e.target.closest('.favorite-button') && navigateWithState(`/subjects/${subjectId}/${topic.id}`)}
-                className="group relative bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2rem] p-8 transition-all duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-2xl hover:shadow-indigo-500/10 cursor-pointer overflow-hidden"
+                className="group relative bg-white/70 backdrop-blur-xl border border-white/60 rounded-2rem p-8 transition-all duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-2xl hover:shadow-indigo-500/10 cursor-pointer overflow-hidden"
               >
                 {/* Visual Accent */}
                 <div className={`absolute top-0 left-0 w-2 h-full transition-colors duration-300 ${

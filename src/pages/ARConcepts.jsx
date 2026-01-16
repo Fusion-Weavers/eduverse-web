@@ -13,6 +13,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useContent } from "../context/ContentContext";
 import { useNavigation } from "../context/NavigationContext";
 import { getSubjectIcon } from "../utils/iconMap";
+import { AmbientBackground, GlassCard, Badge, DifficultyBadge, EmptyState, PrimaryButton } from "../components/ui/DesignSystem";
 
 export default function ARConcepts() {
   const { concepts, topics, subjects, loading, error } = useContent();
@@ -58,17 +59,6 @@ export default function ARConcepts() {
     });
   };
 
-  // --- Design Components ---
-
-  // Ambient Background
-  const AmbientBackground = () => (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-      <div className="absolute top-[-10%] left-[10%] h-[500px] w-[500px] rounded-full bg-indigo-300/20 blur-[100px]" />
-      <div className="absolute top-[40%] right-[-10%] h-[600px] w-[600px] rounded-full bg-purple-300/20 blur-[120px]" />
-      <div className="absolute bottom-[-10%] left-[20%] h-[400px] w-[400px] rounded-full bg-blue-200/20 blur-[100px]" />
-    </div>
-  );
-
   if (loading) {
     return (
       <ErrorBoundary>
@@ -76,9 +66,9 @@ export default function ARConcepts() {
           <AmbientBackground />
           <Navbar />
           <div className="flex flex-1 items-center justify-center">
-            <div className="rounded-3xl border border-white/50 bg-white/40 p-12 backdrop-blur-xl">
-               <LoadingSpinner message="Loading 3D Experience..." />
-            </div>
+            <GlassCard className="p-12" hoverEffect={false}>
+              <LoadingSpinner message="Loading 3D Experience..." />
+            </GlassCard>
           </div>
         </div>
       </ErrorBoundary>
@@ -92,10 +82,10 @@ export default function ARConcepts() {
           <AmbientBackground />
           <Navbar />
           <div className="flex flex-1 items-center justify-center p-6">
-            <div className="mx-auto max-w-lg rounded-3xl border border-slate-200/60 bg-white/70 p-10 text-center shadow-xl backdrop-blur-2xl">
+            <GlassCard className="mx-auto max-w-lg p-10 text-center" hoverEffect={false}>
               <h2 className="mb-4 text-3xl font-black tracking-tight text-slate-900">System Notification</h2>
               <p className="text-lg text-slate-500">{typeof error === "string" ? error : error.message}</p>
-            </div>
+            </GlassCard>
           </div>
         </div>
       </ErrorBoundary>
@@ -112,14 +102,13 @@ export default function ARConcepts() {
           
           {/* Header Section */}
           <div className="mb-12 max-w-4xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/60 px-4 py-2 text-sm font-bold uppercase tracking-wider text-indigo-600 shadow-sm backdrop-blur-md">
-              <IoCubeOutline className="h-4 w-4" /> 3D Learning
+            <div className="mb-6">
+              <Badge variant="primary" className="gap-2">
+                <IoCubeOutline className="h-4 w-4" /> 3D Learning
+              </Badge>
             </div>
-            <h1 className="mb-6 text-5xl font-black tracking-tight text-slate-900 leading-[1.1] sm:text-6xl lg:text-7xl">
-              Immersive <br />
-              <span className="bg-gradient-to-r from-slate-900 to-slate-500 bg-clip-text text-transparent">
-                Visual Concepts
-              </span>
+            <h1 className="mb-6 text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+              Immersive Visual Concepts
             </h1>
             <p className="max-w-2xl text-xl leading-relaxed text-slate-500">
               Explore {arConcepts.length} interactive visualizations. Interact with complex STEM topics through Augmented Reality and 3D modeling directly in your browser.
@@ -127,7 +116,7 @@ export default function ARConcepts() {
           </div>
 
           {/* Controls Glass Bar (Sticky) */}
-          <div className="sticky top-4 z-30 mb-12 flex flex-col items-center justify-between gap-4 rounded-[2rem] border border-white/50 bg-white/70 p-2 shadow-sm backdrop-blur-xl transition-all duration-300 hover:bg-white/80 hover:shadow-md md:flex-row">
+          <GlassCard className="sticky top-4 z-30 mb-12 flex flex-col items-center justify-between gap-4 rounded-3xl p-2 md:flex-row" hoverEffect={false}>
             
             {/* Filter Pills */}
             <div className="flex w-full flex-wrap items-center gap-1 p-1 md:w-auto">
@@ -171,7 +160,7 @@ export default function ARConcepts() {
                 <IoSwapVerticalOutline className={sortOrder === "asc" ? "rotate-0" : "rotate-180 transition-transform"} />
               </button>
             </div>
-          </div>
+          </GlassCard>
 
           {/* Grid Layout */}
           {arConcepts.length > 0 ? (
@@ -182,13 +171,11 @@ export default function ARConcepts() {
                 const SubjectIcon = getSubjectIcon(subject?.icon);
 
                 return (
-                  <div
+                  <GlassCard
                     key={concept.id}
                     onClick={() => handleOpenConcept(concept)}
-                    className="group relative flex cursor-pointer flex-col overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/70 p-8 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:bg-white/90 hover:shadow-2xl hover:shadow-indigo-500/10"
+                    className="group flex flex-col p-8"
                   >
-                    {/* Inner Shine Effect */}
-                    <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] ring-1 ring-inset ring-white/50" />
 
                     {/* Top Row */}
                     <div className="mb-6 flex items-start justify-between">
@@ -205,14 +192,10 @@ export default function ARConcepts() {
                     <div className="flex-1">
                       {/* Badges */}
                       <div className="mb-4 flex flex-wrap items-center gap-2">
-                         <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                        <Badge variant="default">
                           {concept.visualizationType || "AR Model"}
-                        </span>
-                        <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-opacity-10 
-                          ${concept.difficulty === 'Easy' ? 'bg-emerald-500 text-emerald-700' : 
-                            concept.difficulty === 'Medium' ? 'bg-amber-500 text-amber-700' : 'bg-rose-500 text-rose-700'}`}>
-                          {concept.difficulty || 'Medium'}
-                        </span>
+                        </Badge>
+                        <DifficultyBadge difficulty={concept.difficulty || 'Medium'} />
                       </div>
 
                       <h3 className="mb-2 text-2xl font-bold leading-tight text-slate-900 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-purple-600">
@@ -228,27 +211,21 @@ export default function ARConcepts() {
                     <div className="mt-auto flex items-center border-t border-slate-200/60 pt-6 text-sm font-medium text-slate-400 transition-colors group-hover:text-slate-600">
                       <span>Click to launch experience</span>
                     </div>
-                  </div>
+                  </GlassCard>
                 );
               })}
             </div>
           ) : (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-white/60 bg-white/40 py-24 px-4 text-center backdrop-blur-xl">
-              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white/50 shadow-sm backdrop-blur-sm ring-1 ring-white/60">
-                <IoLayersOutline className="h-10 w-10 text-slate-300" />
-              </div>
-              <h3 className="mb-2 text-2xl font-bold text-slate-900">No 3D concepts found</h3>
-              <p className="mx-auto max-w-md text-slate-500">
-                We couldn't find any concepts matching your current filters. Try selecting a different category.
-              </p>
-              <button 
-                onClick={() => setVisFilter('all')}
-                className="mt-8 rounded-full bg-slate-900 px-8 py-3 text-sm font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-slate-800 hover:shadow-lg"
-              >
-                Clear Filters
-              </button>
-            </div>
+            <EmptyState
+              icon={IoLayersOutline}
+              title="No 3D concepts found"
+              description="We couldn't find any concepts matching your current filters. Try selecting a different category."
+              action={
+                <PrimaryButton onClick={() => setVisFilter('all')}>
+                  Clear Filters
+                </PrimaryButton>
+              }
+            />
           )}
         </main>
       </div>

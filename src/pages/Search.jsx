@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import SearchBar from "../components/SearchBar";
 import SearchResults from "../components/SearchResults";
 import { useSearch } from "../context/SearchContext";
+import { AmbientBackground, GlassCard, Badge } from "../components/ui/DesignSystem";
 
 export default function Search() {
   const [searchParams] = useSearchParams();
@@ -32,13 +33,7 @@ export default function Search() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
       <Navbar />
-
-      {/* Ambient Background Decorations */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[30%] h-[500px] w-[500px] rounded-full bg-indigo-300/20 blur-[100px]" />
-        <div className="absolute top-[20%] right-[-5%] h-[400px] w-[400px] rounded-full bg-purple-300/20 blur-[100px]" />
-        <div className="absolute bottom-[-10%] left-[10%] h-[600px] w-[600px] rounded-full bg-blue-200/20 blur-[120px]" />
-      </div>
+      <AmbientBackground />
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         
@@ -48,7 +43,7 @@ export default function Search() {
             <IoSearch className="text-3xl text-indigo-600" />
           </div>
           
-          <h1 className="mb-4 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="mb-4 text-4xl md:text-5xl font-black tracking-tight text-slate-900">
             Explore Knowledge
           </h1>
           
@@ -92,9 +87,9 @@ export default function Search() {
         </div>
         
         {/* Results Section */}
-        <div className="min-h-[400px] rounded-3xl border border-white/60 bg-white/40 p-6 shadow-sm backdrop-blur-2xl sm:p-8">
+        <GlassCard className="min-h-[400px] p-6 sm:p-8" hoverEffect={false}>
           <SearchResults showHeader={true} />
-        </div>
+        </GlassCard>
 
       </main>
     </div>

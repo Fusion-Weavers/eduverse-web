@@ -59,24 +59,15 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
     }
 
     try {
-      const context = {
-        subject: subject?.name,
-        topic: topic?.name,
-        difficulty: concept.difficulty
-      };
-
-      const localizedContent = await getLocalizedContent(
-        concept.content,
-        concept.id,
-        context
-      );
+      const localizedContent = await getLocalizedContent(concept.content, concept.id);
 
       const result = {
         content: localizedContent,
         language: localizedContent.language,
         isFallback: localizedContent.isFallback || false,
         fallbackReason: localizedContent.fallbackReason,
-        isTranslated: localizedContent.isTranslated || false
+        isTranslated: localizedContent.isTranslated || false,
+        fromCache: localizedContent.fromCache || false
       };
 
       setLocalizedContentCache(prev => new Map(prev.set(cacheKey, result)));
@@ -399,7 +390,9 @@ export default function ConceptView({ topicId, conceptId, onBack }) {
                       <span className="text-xl"><IoSparklesOutline /></span>
                       <div className="text-sm">
                         <strong>AI Translated</strong><br />
-                        This content was automatically translated
+                        {localizedContent.fromCache 
+                          ? 'This content was automatically translated (cached)'
+                          : 'This content was automatically translated'}
                       </div>
                     </div>
                   )}

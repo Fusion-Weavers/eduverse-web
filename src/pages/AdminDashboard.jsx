@@ -15,6 +15,7 @@ import TopicManager from "../components/admin/TopicManager";
 import SubjectManager from "../components/admin/SubjectManager";
 import DataSeeder from "../components/admin/DataSeeder";
 import ARManager from "../components/admin/ARManager";
+import { AmbientBackground, GlassCard, Badge } from "../components/ui/DesignSystem";
 
 export default function AdminDashboard() {
   const { isAdmin, loading } = useAuth();
@@ -65,30 +66,22 @@ export default function AdminDashboard() {
   const activeTabData = tabs.find(tab => tab.id === activeTab);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] relative overflow-hidden font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden font-sans text-slate-900">
       <Navbar />
-
-      {/* Ambient Background Elements (The "Glow" behind the glass) */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-purple-200/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-blue-200/40 rounded-full blur-[100px] opacity-60 mix-blend-multiply" />
-        <div className="absolute top-[40%] left-[40%] w-[30rem] h-[30rem] bg-pink-200/30 rounded-full blur-[100px] opacity-40 mix-blend-multiply" />
-      </div>
+      <AmbientBackground />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 relative z-10">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1 rounded-full bg-slate-900/5 text-slate-600 border border-slate-900/5 text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
-                Admin Console
-              </span>
+            <div className="flex items-center gap-3 mb-4">
+              <Badge variant="default">Admin Console</Badge>
             </div>
-            <h1 className="text-4xl lg:text-5xl font-black text-transparent bg-gradient-to-r from-slate-800 to-slate-500 bg-clip-text tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-2">
               Dashboard
             </h1>
-            <p className="text-lg text-slate-500 mt-2 font-medium">
+            <p className="text-lg text-slate-500 font-medium">
               Manage your educational ecosystem.
             </p>
           </div>
@@ -109,30 +102,21 @@ export default function AdminDashboard() {
           
           {/* Sidebar Navigation (Glass Dock) */}
           <div className="w-full lg:w-72 flex-shrink-0 lg:sticky lg:top-24 z-20">
-            <div className="glass-panel p-2 rounded-2xl flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible scrollbar-hide">
+            <GlassCard className="p-2 rounded-2xl flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible scrollbar-hide" hoverEffect={false}>
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      relative group flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all duration-300 min-w-[160px] lg:min-w-0
-                      ${isActive 
-                        ? "bg-white shadow-lg shadow-slate-200/50 text-slate-900 ring-1 ring-black/5" 
-                        : "text-slate-500 hover:bg-white/40 hover:text-slate-900"
-                      }
-                    `}
+                    className={`relative group flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all duration-300 min-w-[160px] lg:min-w-0 ${isActive ? "bg-white shadow-lg shadow-slate-200/50 text-slate-900 ring-1 ring-black/5" : "text-slate-500 hover:bg-white/40 hover:text-slate-900"}`}
                   >
                     {/* Active Indicator Dot */}
                     {isActive && (
                       <div className="absolute left-0 lg:-left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-slate-800 rounded-r-full hidden lg:block" />
                     )}
 
-                    <span className={`
-                      p-2 rounded-lg transition-colors duration-300
-                      ${isActive ? "bg-slate-100 text-slate-900" : "bg-transparent group-hover:bg-white/60"}
-                    `}>
+                    <span className={`p-2 rounded-lg transition-colors duration-300 ${isActive ? "bg-slate-100 text-slate-900" : "bg-transparent group-hover:bg-white/60"}`}>
                       {tab.icon}
                     </span>
                     
@@ -145,12 +129,12 @@ export default function AdminDashboard() {
                   </button>
                 );
               })}
-            </div>
+            </GlassCard>
           </div>
 
           {/* Main Content Area (Glass Card) */}
           <div className="flex-1 w-full min-w-0">
-            <div className="glass-panel min-h-[600px] p-1 rounded-[24px]">
+            <GlassCard className="min-h-[600px] p-1" hoverEffect={false}>
               
               {/* Content Header inside Glass Card */}
               <div className="px-6 py-5 border-b border-slate-900/5 flex justify-between items-center">
@@ -170,25 +154,13 @@ export default function AdminDashboard() {
                 {activeTab === "ar" && <ARManager />}
                 {activeTab === "seed" && <DataSeeder />}
               </div>
-            </div>
+            </GlassCard>
           </div>
 
         </div>
       </div>
 
       <style jsx>{`
-        /* Glassmorphism Utility Class */
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.65);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: 
-            0 4px 6px -1px rgba(0, 0, 0, 0.02),
-            0 2px 4px -1px rgba(0, 0, 0, 0.02),
-            inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-        }
-
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }

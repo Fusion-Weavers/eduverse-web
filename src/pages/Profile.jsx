@@ -21,6 +21,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useContent } from "../context/ContentContext";
 import { getSubjectIcon } from "../utils/iconMap";
+import { AmbientBackground, GlassCard, StatCard, Badge } from "../components/ui/DesignSystem";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -101,39 +102,17 @@ export default function Profile() {
   
   const hasFavorites = Object.keys(favoritesBySubject).length > 0;
 
-  // --- Sub-Components for Cleanliness ---
-
-  const StatCard = ({ icon: Icon, value, label, colorClass }) => (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/60 bg-white/60 p-6 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-xl ${colorClass}`} />
-      <div className="relative z-10 flex items-center gap-4">
-        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${colorClass.replace('bg-', 'bg-opacity-10 bg-')} text-xl`}>
-            <Icon className={colorClass.replace('bg-', 'text-')} />
-        </div>
-        <div>
-          <p className="text-3xl font-black tracking-tight text-slate-900">{value}</p>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       <Navbar />
-
-      {/* Ambient Background Decorations */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[20%] h-[500px] w-[500px] rounded-full bg-indigo-300/20 blur-[100px]" />
-        <div className="absolute bottom-[10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-blue-300/20 blur-[100px]" />
-      </div>
+      <AmbientBackground />
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         
         {/* Page Header */}
         <div className="mb-12">
-          <h2 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Profile</h2>
-          <p className="mt-2 text-lg text-slate-500">Manage your account settings and view your learning progress.</p>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">Profile</h2>
+          <p className="mt-2 text-lg text-slate-500 font-medium">Manage your account settings and view your learning progress.</p>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -142,7 +121,7 @@ export default function Profile() {
           <div className="space-y-8 lg:col-span-4">
             
             {/* Identity Card */}
-            <div className="rounded-3xl border border-white/60 bg-white/70 p-8 text-center shadow-lg backdrop-blur-2xl">
+            <GlassCard className="p-8 text-center" hoverEffect={false}>
               <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-slate-200 to-slate-100 ring-4 ring-white shadow-inner">
                 <span className="text-4xl font-bold text-slate-700">
                   {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
@@ -152,17 +131,15 @@ export default function Profile() {
               <p className="text-sm font-medium text-slate-500">{user.email}</p>
               
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-700">
-                  Student
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                <Badge variant="primary">Student</Badge>
+                <Badge variant="default">
                   Member since {user.metadata?.creationTime ? new Date(user.metadata.creationTime).getFullYear() : '2025'}
-                </span>
+                </Badge>
               </div>
-            </div>
+            </GlassCard>
 
             {/* Settings Panel */}
-            <div className="rounded-3xl border border-white/60 bg-white/70 p-6 shadow-sm backdrop-blur-xl">
+            <GlassCard className="p-6" hoverEffect={false}>
                <div className="mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
                   <IoSettingsOutline className="text-slate-400" />
                   <h4 className="font-bold text-slate-900">Preferences</h4>
@@ -227,7 +204,7 @@ export default function Profile() {
                     <IoTrashOutline /> Clear Cache
                   </button>
                </div>
-            </div>
+            </GlassCard>
           </div>
 
           {/* RIGHT COLUMN: Stats & Favorites (8 cols) */}
@@ -262,7 +239,7 @@ export default function Profile() {
             </div>
 
             {/* Favorites Collection */}
-            <div className="rounded-3xl border border-white/60 bg-white/70 p-8 shadow-sm backdrop-blur-xl">
+            <GlassCard className="p-8" hoverEffect={false}>
               <div className="mb-8 flex items-end justify-between">
                 <h3 className="text-2xl font-bold tracking-tight text-slate-900">Your Collection</h3>
                 {hasFavorites && (
@@ -335,7 +312,7 @@ export default function Profile() {
                   })}
                 </div>
               )}
-            </div>
+            </GlassCard>
           </div>
         </div>
       </main>

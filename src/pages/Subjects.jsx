@@ -8,38 +8,9 @@ import { useContent } from "../context/ContentContext";
 import { useNavigation } from "../context/NavigationContext";
 import { getSubjectIcon } from "../utils/iconMap";
 import { FiArrowLeft, FiAlertCircle, FiGrid, FiBookOpen } from "react-icons/fi";
+import { AmbientBackground, GlassCard, BackButton, PageHeader } from "../components/ui/DesignSystem";
 
 // --- Design Components ---
-
-const AmbientBackground = () => (
-  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-slate-50">
-    <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-indigo-200/30 rounded-full blur-[120px]" />
-    <div className="absolute bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-purple-200/30 rounded-full blur-[100px]" />
-  </div>
-);
-
-const BackButton = ({ onClick }) => (
-  <button 
-    onClick={onClick}
-    className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/50 backdrop-blur-md border border-white/60 text-slate-600 font-bold text-sm transition-all duration-300 hover:bg-white hover:shadow-md hover:-translate-x-1"
-  >
-    <FiArrowLeft className="w-4 h-4" /> Back
-  </button>
-);
-
-const PageHeader = ({ title, subtitle, icon: Icon }) => (
-  <div className="mb-10">
-    <div className="flex items-center gap-3 mb-2">
-      {Icon && (
-        <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
-          <Icon className="w-5 h-5" />
-        </div>
-      )}
-      <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">{title}</h2>
-    </div>
-    {subtitle && <p className="text-lg text-slate-500 max-w-2xl font-medium ml-1">{subtitle}</p>}
-  </div>
-);
 
 export default function Subjects() {
   const { subjectId, topicId, conceptId } = useParams();
@@ -54,10 +25,10 @@ export default function Subjects() {
         <div className="min-h-screen relative font-sans">
           <AmbientBackground />
           <Navbar />
-          <div className="flex-1 flex items-center justify-center min-h-[80vh]">
-            <div className="p-8 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/50">
+          <div className="flex flex-1 items-center justify-center min-h-[80vh]">
+            <GlassCard className="p-12" hoverEffect={false}>
               <LoadingSpinner message="Loading curriculum..." />
-            </div>
+            </GlassCard>
           </div>
         </div>
       </ErrorBoundary>
@@ -72,7 +43,7 @@ export default function Subjects() {
           <AmbientBackground />
           <Navbar />
           <div className="container mx-auto px-4 py-20 flex justify-center">
-            <div className="max-w-md w-full text-center p-10 rounded-[2rem] bg-white/70 backdrop-blur-2xl border border-slate-200/60 shadow-xl">
+            <GlassCard className="max-w-md w-full text-center p-10" hoverEffect={false}>
               <div className="w-16 h-16 mx-auto bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
                 <FiAlertCircle className="w-8 h-8" />
               </div>
@@ -84,7 +55,7 @@ export default function Subjects() {
               >
                 Try Again
               </button>
-            </div>
+            </GlassCard>
           </div>
         </div>
       </ErrorBoundary>
@@ -122,7 +93,7 @@ export default function Subjects() {
             <AmbientBackground />
             <Navbar />
             <div className="container mx-auto px-4 py-20 flex justify-center">
-              <div className="max-w-lg text-center p-10 rounded-[2rem] bg-white/70 backdrop-blur-xl border border-slate-200 shadow-lg">
+              <GlassCard className="max-w-lg text-center p-10" hoverEffect={false}>
                 <h2 className="text-2xl font-black text-slate-900 mb-4">Subject Not Found</h2>
                 <p className="text-slate-500 mb-8">The requested subject ID does not exist in our curriculum.</p>
                 <div className="flex gap-4 justify-center">
@@ -131,7 +102,7 @@ export default function Subjects() {
                     View All Subjects
                   </button>
                 </div>
-              </div>
+              </GlassCard>
             </div>
           </div>
         </ErrorBoundary>
@@ -153,7 +124,7 @@ export default function Subjects() {
                 <BackButton onClick={goBack} />
               </div>
               
-              <div className="flex flex-col md:flex-row md:items-center gap-6 p-8 rounded-[2rem] bg-white/60 backdrop-blur-xl border border-white/60 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center gap-6 p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-sm">
                 <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-700 shadow-inner">
                   <SubjectIcon className="w-10 h-10" />
                 </div>
@@ -172,9 +143,9 @@ export default function Subjects() {
             </div>
 
             {/* Topic List Container */}
-            <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-1 border border-white/40">
-               <TopicList subjectId={subjectId} />
-            </div>
+            <GlassCard className="p-1" hoverEffect={false}>
+              <TopicList subjectId={subjectId} />
+            </GlassCard>
           </main>
         </div>
       </ErrorBoundary>
@@ -216,23 +187,18 @@ export default function Subjects() {
               const SubjectIcon = getSubjectIcon(subject.icon);
 
               return (
-                <div
+                <GlassCard
                   key={subject.id}
                   onClick={() => handleSubjectClick(subject)}
-                  className="group relative flex flex-col p-8 rounded-[2rem] bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:bg-white/80"
+                  className="flex flex-col p-8"
                 >
-                  {/* Inner Shine */}
-                  <div className="absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/50 pointer-events-none" />
 
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-700 transition-colors duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 shadow-inner">
                       <SubjectIcon className="w-8 h-8" />
                     </div>
                     
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border
-                      ${subject.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
-                        subject.difficulty === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
-                        'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${subject.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : subject.difficulty === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
                       {subject.difficulty || 'Beginner'}
                     </span>
                   </div>
@@ -254,7 +220,7 @@ export default function Subjects() {
                       Explore <span className="transform group-hover:translate-x-1 transition-transform">→</span>
                     </span>
                   </div>
-                </div>
+                </GlassCard>
               );
             })}
           </div>

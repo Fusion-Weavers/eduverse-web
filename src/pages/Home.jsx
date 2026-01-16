@@ -1,110 +1,166 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
-import SearchBar from "../components/SearchBar";
-import { FiBook, FiBox, FiStar, FiUser, FiSun, FiMoon, FiArrowRight, FiZap, FiGlobe, FiBookOpen } from "react-icons/fi";
+import Navbar from "../components/Navbar"; // Assuming this is also refactored
+import { 
+  FiBook, FiBox, FiStar, FiUser, FiSun, FiMoon, 
+  FiArrowRight, FiZap, FiGlobe, FiLayers, FiSmartphone, FiSearch 
+} from "react-icons/fi";
+
+// --- Design System Components ---
+
+const AmbientBackground = () => (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-slate-50">
+    <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-200/40 rounded-full blur-[120px] opacity-70" />
+    <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-200/40 rounded-full blur-[100px] opacity-70" />
+    <div className="absolute top-[40%] left-[30%] w-[300px] h-[300px] bg-sky-200/40 rounded-full blur-[80px] opacity-60" />
+  </div>
+);
+
+const GlassCard = ({ children, className = "", hoverEffect = true }) => (
+  <div className={`relative bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2rem] shadow-sm 
+    ${hoverEffect ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:bg-white/80' : ''} 
+    ${className}`}>
+    {/* Inner Edge Shine */}
+    <div className="absolute inset-0 rounded-[2rem] ring-1 ring-inset ring-white/50 pointer-events-none" />
+    {children}
+  </div>
+);
+
+const SectionHeading = ({ icon: Icon, title, subtitle }) => (
+  <div className="mb-10">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2 bg-slate-100 rounded-xl text-slate-900">
+        <Icon className="w-5 h-5" />
+      </div>
+      <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">{title}</h2>
+    </div>
+    {subtitle && <p className="text-slate-500 text-lg max-w-2xl">{subtitle}</p>}
+  </div>
+);
+
+const PrimaryButton = ({ children, onClick, className = "" }) => (
+  <button 
+    onClick={onClick}
+    className={`group flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-full font-bold transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 ${className}`}
+  >
+    {children}
+  </button>
+);
+
+const SecondaryButton = ({ children, onClick, className = "" }) => (
+  <button 
+    onClick={onClick}
+    className={`group flex items-center justify-center gap-2 px-8 py-4 bg-white/50 backdrop-blur-md border border-slate-200 text-slate-700 rounded-full font-bold transition-all duration-300 hover:bg-white hover:shadow-md active:scale-95 ${className}`}
+  >
+    {children}
+  </button>
+);
+
+// --- Main Component ---
 
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  // Note: Dark mode logic retained but visual styling below is strictly "Light/Glass" as per design system requirements.
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setDarkMode(savedTheme === 'dark');
-    document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
   const toggleTheme = () => {
     const newTheme = !darkMode ? 'dark' : 'light';
     setDarkMode(!darkMode);
-    document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
   };
 
   // --- LOGGED IN DASHBOARD ---
   if (user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
+      <div className="min-h-screen font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <AmbientBackground />
         <Navbar />
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 space-y-12 lg:space-y-16">
+        
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
           
-          {/* Welcome Section */}
-          <section className="text-center md:text-left space-y-3">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-base-content tracking-tight">
-              Welcome back, <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{user.displayName || 'Learner'}</span>!
+          {/* Welcome Header */}
+          <section className="relative z-10">
+            <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-4">
+              Welcome back, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                {user.displayName || 'Learner'}
+              </span>
             </h1>
-            <p className="text-base sm:text-lg lg:text-xl text-base-content/70 max-w-2xl">
-              Continue your STEM learning journey with interactive 3D concepts
+            <p className="text-xl text-slate-500 max-w-2xl">
+              Ready to continue your exploration? Your 3D models and saved lessons are waiting.
             </p>
           </section>
 
-          {/* Search Section */}
-          <section className="bg-gradient-to-br from-base-100 to-base-200 p-6 sm:p-8 lg:p-10 rounded-3xl shadow-xl border border-base-300/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-base-content">Search & Explore</h2>
-            </div>
-            <SearchBar placeholder="Search subjects, topics, and concepts..." />
+          {/* Search Glass Bar */}
+          <section>
+            <GlassCard className="p-2 flex items-center" hoverEffect={false}>
+              <div className="pl-6 text-slate-400">
+                <FiSearch className="w-6 h-6" />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search subjects, topics, and concepts..."
+                className="w-full bg-transparent border-none focus:ring-0 text-slate-900 placeholder:text-slate-400 text-lg py-4 px-4 font-medium"
+              />
+              <button className="hidden sm:block px-8 py-3 bg-slate-900 text-white rounded-3xl font-bold hover:bg-slate-800 transition-colors">
+                Search
+              </button>
+            </GlassCard>
           </section>
 
-          {/* Quick Shortcuts */}
+          {/* Quick Access Grid */}
           <section>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-1 h-8 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-base-content">Quick Access</h2>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <SectionHeading icon={FiZap} title="Quick Access" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { label: 'Subjects', icon: <FiBook className="w-6 h-6" />, path: '/subjects', gradient: 'from-blue-500 to-blue-600' },
-                { label: '3D Models', icon: <FiBox className="w-6 h-6" />, path: '/ar', gradient: 'from-purple-500 to-purple-600' },
-                { label: 'Favorites', icon: <FiStar className="w-6 h-6" />, path: '/favorites', gradient: 'from-amber-500 to-amber-600' },
-                { label: 'Profile', icon: <FiUser className="w-6 h-6" />, path: '/profile', gradient: 'from-emerald-500 to-emerald-600' },
+                { label: 'Subjects', icon: FiBook, path: '/subjects', color: 'bg-blue-50 text-blue-600' },
+                { label: '3D Models', icon: FiBox, path: '/ar', color: 'bg-purple-50 text-purple-600' },
+                { label: 'Favorites', icon: FiStar, path: '/favorites', color: 'bg-amber-50 text-amber-600' },
+                { label: 'Profile', icon: FiUser, path: '/profile', color: 'bg-emerald-50 text-emerald-600' },
               ].map((item) => (
-                <div 
+                <GlassCard 
                   key={item.label}
-                  onClick={() => navigate(item.path)}
-                  className="group relative bg-base-100 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-base-300/50 overflow-hidden hover:-translate-y-2 active:scale-95"
+                  className="p-6 cursor-pointer flex flex-col items-center justify-center text-center group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5 transition-opacity duration-300 from-primary to-secondary"></div>
-                  <div className="card-body items-center text-center p-6 sm:p-8">
-                    <div className={`p-4 sm:p-5 rounded-2xl bg-gradient-to-br ${item.gradient} text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      {item.icon}
+                  <div onClick={() => navigate(item.path)} className="w-full h-full flex flex-col items-center">
+                    <div className={`w-16 h-16 rounded-2xl ${item.color} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}>
+                      <item.icon className="w-7 h-7" />
                     </div>
-                    <h3 className="font-semibold text-sm sm:text-base lg:text-lg mt-4 text-base-content group-hover:text-primary transition-colors">
-                      {item.label}
-                    </h3>
+                    <h3 className="font-bold text-slate-900 text-lg">{item.label}</h3>
                   </div>
-                </div>
+                </GlassCard>
               ))}
             </div>
           </section>
 
           {/* Featured Content */}
           <section>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-1 h-8 bg-gradient-to-b from-primary to-secondary rounded-full"></div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-base-content">Featured Topics</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <SectionHeading icon={FiLayers} title="Featured Topics" subtitle="Curated learning paths trending this week." />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeaturedCard 
                 badge="Popular" 
-                badgeGradient="from-blue-500 to-blue-600"
+                badgeColor="bg-blue-100 text-blue-700"
                 title="Physics Fundamentals" 
                 desc="Master the core concepts of motion, energy, and forces."
                 onBtnClick={() => navigate('/subjects')}
               />
               <FeaturedCard 
                 badge="New" 
-                badgeGradient="from-purple-500 to-purple-600"
+                badgeColor="bg-purple-100 text-purple-700"
                 title="Biology in 3D" 
                 desc="Explore human anatomy and systems with immersive models."
                 onBtnClick={() => navigate('/ar')}
               />
               <FeaturedCard 
                 badge="Trending" 
-                badgeGradient="from-amber-500 to-amber-600"
+                badgeColor="bg-amber-100 text-amber-700"
                 title="Chemistry Reactions" 
                 desc="Understand atomic structures and chemical reactions."
                 onBtnClick={() => navigate('/subjects')}
@@ -118,305 +174,235 @@ export default function Home() {
 
   // --- LANDING PAGE (GUEST) ---
   return (
-    <div className="bg-base-100 min-h-screen">
-      {/* Navbar */}
-      <div className="navbar bg-base-100/80 backdrop-blur-lg border-b border-base-300/50 sticky top-0 z-50 px-4 md:px-8 shadow-sm">
-        <div className="flex-1">
-          <span className="text-2xl sm:text-3xl font-black text-transparent bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text italic">
-            Eduverse
-          </span>
-        </div>
-        <div className="flex-none gap-2 sm:gap-3">
-          <button 
-            onClick={toggleTheme} 
-            className="btn btn-ghost btn-circle hover:bg-base-200 transition-colors"
-          >
-            {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
-          </button>
-          <button 
-            onClick={() => navigate('/login')} 
-            className="btn btn-ghost hidden sm:inline-flex hover:bg-base-200"
-          >
-            Sign In
-          </button>
-          <button 
-            onClick={() => navigate('/signup')} 
-            className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-          >
-            Sign Up
-          </button>
-        </div>
-      </div>
-
-      {/* Hero Section */}
-      <div className="relative min-h-screen flex items-center bg-gradient-to-br from-base-100 via-base-200 to-base-100 overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden opacity-20">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-            {/* Hero Image */}
-            <div className="flex-1 order-1 lg:order-2">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-3xl blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-500"></div>
-                <img 
-                  src="/banner.png" 
-                  alt="Hero" 
-                  className="relative w-full max-w-md lg:max-w-lg mx-auto rounded-3xl shadow-2xl transform group-hover:scale-105 transition-transform duration-500 border-4 border-base-300/50" 
-                />
-              </div>
+    <div className="min-h-screen font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      <AmbientBackground />
+      
+      {/* Navbar (Custom Glass) */}
+      <nav className="fixed top-0 inset-x-0 z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto rounded-full bg-white/70 backdrop-blur-xl border border-white/50 shadow-sm px-6 py-3 flex items-center justify-between">
+            <span className="text-2xl font-black text-slate-900 tracking-tight">
+              Eduverse
+            </span>
+            <div className="flex items-center gap-4">
+              <button onClick={() => navigate('/login')} className="hidden sm:block text-slate-500 font-bold hover:text-slate-900 transition-colors">
+                Sign In
+              </button>
+              <button 
+                onClick={() => navigate('/signup')} 
+                className="px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
+              >
+                Get Started
+              </button>
             </div>
+        </div>
+      </nav>
 
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Hero Section */}
+        <section className="pt-32 pb-20 lg:pt-48 lg:pb-32">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            
             {/* Hero Content */}
-            <div className="flex-1 order-2 lg:order-1 text-center lg:text-left space-y-6 lg:space-y-8">
-              <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary text-sm font-semibold mb-4">
-                🚀 The Future of STEM Education
+            <div className="flex-1 text-center lg:text-left space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-slate-200 text-indigo-600 text-sm font-bold uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                The Future of Education
               </div>
               
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-tight tracking-tight">
-                Explore STEM{" "}
-                <span className="text-transparent bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text italic relative">
-                  with AR
-                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 10C50 4 100 2 198 8" stroke="currentColor" strokeWidth="3" className="text-primary" strokeLinecap="round"/>
-                  </svg>
+              <h1 className="text-5xl sm:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                Explore STEM <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                  with AR Magic
                 </span>
               </h1>
               
-              <p className="text-lg sm:text-xl lg:text-2xl text-base-content/70 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-xl text-slate-500 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Experience interactive learning through augmented reality. 
                 Master complex STEM concepts in your preferred language with immersive 3D visualizations.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <button 
-                  onClick={() => navigate('/signup')} 
-                  className="btn btn-primary btn-lg px-8 shadow-xl hover:shadow-2xl transition-all duration-300 group hover:scale-105"
-                >
-                  Get Started
-                  <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button 
-                  onClick={() => navigate('/ar')} 
-                  className="btn btn-outline btn-lg px-8 hover:bg-base-200 transition-all duration-300 hover:scale-105"
-                >
-                  View 3D Concepts
-                </button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <PrimaryButton onClick={() => navigate('/signup')}>
+                  Start Learning Free <FiArrowRight />
+                </PrimaryButton>
+                <SecondaryButton onClick={() => navigate('/ar')}>
+                  View 3D Demo
+                </SecondaryButton>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-8 max-w-xl mx-auto lg:mx-0">
-                {[
-                  { value: "500+", label: "3D Models" },
-                  { value: "50K+", label: "Students" },
-                  { value: "10+", label: "Languages" }
+              {/* Stats - Floating Glass */}
+              <div className="pt-8 flex justify-center lg:justify-start gap-4">
+                 {[
+                  { value: "500+", label: "Models" },
+                  { value: "50K+", label: "Users" },
+                  { value: "10+", label: "Langs" }
                 ].map((stat, i) => (
-                  <div key={i} className="text-center lg:text-left">
-                    <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-primary">{stat.value}</div>
-                    <div className="text-xs sm:text-sm text-base-content/60 font-medium">{stat.label}</div>
+                  <div key={i} className="px-6 py-3 bg-white/40 backdrop-blur-md rounded-2xl border border-white/40 text-center">
+                    <div className="text-2xl font-black text-slate-900">{stat.value}</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wide">{stat.label}</div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Features Section */}
-      <section className="py-16 sm:py-20 lg:py-32 px-4 bg-base-200 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        
-        <div className="container mx-auto relative z-10">
-          <div className="text-center mb-12 sm:mb-16 lg:mb-20 space-y-4">
-            <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary text-sm font-semibold">
-              ✨ Features
+            {/* Hero Visual */}
+            <div className="flex-1 relative w-full max-w-lg lg:max-w-xl">
+              <GlassCard className="p-4 rotate-3 lg:rotate-6 !bg-white/40">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/3]">
+                   <div className="absolute inset-0 bg-slate-200 animate-pulse"></div>
+                   {/* Replace with actual image */}
+                   <img 
+                    src="/banner.png" 
+                    alt="AR Education" 
+                    className="relative w-full h-full object-cover" 
+                  />
+                  {/* Floating Element Decoration */}
+                  <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 flex items-center gap-4">
+                     <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                        <FiBox />
+                     </div>
+                     <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase">Current Session</p>
+                        <p className="text-slate-900 font-bold">Anatomy of the Heart</p>
+                     </div>
+                  </div>
+                </div>
+              </GlassCard>
             </div>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-base-content">
-              Why Choose <span className="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">Eduverse</span>?
-            </h2>
-            <p className="text-lg sm:text-xl text-base-content/70 max-w-2xl mx-auto">
-              Discover what makes our platform the future of STEM education
-            </p>
+          </div>
+        </section>
+
+        {/* Features Grid */}
+        <section className="py-20">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Why Choose Eduverse?</h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">Immersive technology meets traditional curriculum.</p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FeatureItem 
-              icon={<FiBox className="w-8 h-8" />} 
-              gradient="from-blue-500 to-blue-600"
+              icon={FiBox} 
               title="Interactive AR" 
               desc="Explore 3D models of scientific concepts in your physical space." 
             />
             <FeatureItem 
-              icon={<FiGlobe className="w-8 h-8" />} 
-              gradient="from-purple-500 to-purple-600"
+              icon={FiGlobe} 
               title="Multi-Language" 
               desc="Learn in your preferred language with seamless content translation." 
             />
             <FeatureItem 
-              icon={<FiBookOpen className="w-8 h-8" />} 
-              gradient="from-emerald-500 to-emerald-600"
+              icon={FiBook} 
               title="Comprehensive" 
               desc="Structured lessons across Physics, Chemistry, and Biology." 
             />
             <FeatureItem 
-              icon={<FiZap className="w-8 h-8" />} 
-              gradient="from-amber-500 to-amber-600"
+              icon={FiZap} 
               title="Self-Paced" 
               desc="Save favorites and track your learning progress over time." 
             />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Mobile App Section */}
-      <section className="py-16 sm:py-20 lg:py-32 bg-gradient-to-br from-base-100 via-base-200 to-base-100 px-4">
-        <div className="container mx-auto">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
-            {/* Content */}
-            <div className="flex-1 space-y-6 lg:space-y-8 text-center lg:text-left">
-              <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary text-sm font-semibold">
-                📱 Mobile App
-              </div>
-              
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-base-content">
-                Download Our App
-              </h2>
-              
-              <p className="text-lg sm:text-xl text-base-content/70 max-w-xl mx-auto lg:mx-0">
-                Experience full AR capabilities on your smartphone. Take your STEM lab wherever you go.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row items-center gap-6 p-6 sm:p-8 bg-base-100 rounded-3xl shadow-xl border border-base-300/50 hover:shadow-2xl transition-all duration-300 max-w-xl mx-auto lg:mx-0">
-                <div className="bg-white p-3 rounded-2xl shadow-lg">
-                  <img src="/image.png" alt="QR Code" className="w-24 h-24 sm:w-28 sm:h-28" />
+        {/* Mobile App Section */}
+        <section className="py-20 lg:py-32">
+          <GlassCard className="p-8 md:p-12 lg:p-16 overflow-hidden">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+              <div className="flex-1 space-y-6 text-center lg:text-left">
+                <div className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                  Mobile App
                 </div>
-                <div className="text-center sm:text-left">
-                  <p className="font-bold text-sm uppercase tracking-wider text-base-content/50 mb-3">
-                    Android App
-                  </p>
-                  <a 
-                    href="https://q.me-qr.com/spc1s2v7" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn btn-primary shadow-lg hover:shadow-xl transition-all duration-300 group"
-                  >
-                    Download APK
-                    <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Phone Mockup */}
-            <div className="flex-1 flex justify-center lg:justify-end">
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-3xl blur-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-500"></div>
-                <div className="mockup-phone border-primary shadow-2xl relative transform group-hover:scale-105 transition-transform duration-500">
-                  <div className="camera"></div> 
-                  <div className="display">
-                    <div className="artboard artboard-demo phone-1 bg-base-100">
-                      <img 
-                        src="/app.jpeg" 
-                        alt="App Preview" 
-                        className="h-full w-full object-cover" 
-                      />
-                    </div>
+                <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                  Take the Lab <br /> With You
+                </h2>
+                <p className="text-lg text-slate-500 max-w-md mx-auto lg:mx-0">
+                  Experience full AR capabilities on your smartphone. Scan to download the APK directly.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-6 pt-4 justify-center lg:justify-start">
+                  <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100">
+                    <img src="/image.png" alt="QR Code" className="w-24 h-24" />
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Download Android App</p>
+                    <PrimaryButton onClick={() => window.open('https://q.me-qr.com/spc1s2v7', '_blank')}>
+                      Download APK <FiArrowRight className="ml-2" />
+                    </PrimaryButton>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="footer p-10 lg:p-16 bg-neutral text-neutral-content rounded-t-3xl shadow-2xl">
-        <nav>
-          <header className="text-2xl font-black mb-4 text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-            Eduverse
-          </header> 
-          <p className="max-w-xs text-neutral-content/80 leading-relaxed">
-            Making STEM education accessible through immersive AR technology.
-          </p>
-        </nav> 
-        <nav>
-          <header className="footer-title text-neutral-content opacity-100 font-bold text-lg mb-4">Product</header> 
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Features</a>
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Subjects</a>
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Pricing</a>
-        </nav> 
-        <nav>
-          <header className="footer-title text-neutral-content opacity-100 font-bold text-lg mb-4">Company</header> 
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">About us</a>
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Contact</a>
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Careers</a>
-        </nav> 
-        <nav>
-          <header className="footer-title text-neutral-content opacity-100 font-bold text-lg mb-4">Legal</header> 
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Terms of use</a>
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Privacy policy</a>
-          <a className="link link-hover text-neutral-content/80 hover:text-primary transition-colors">Cookie policy</a>
-        </nav>
-      </footer>
+              {/* Custom CSS Phone Mockup to avoid DaisyUI */}
+              <div className="flex-1 flex justify-center lg:justify-end relative">
+                 <div className="relative w-[280px] h-[580px] bg-slate-900 rounded-[3rem] shadow-2xl ring-8 ring-slate-900 overflow-hidden transform rotate-[-6deg] hover:rotate-0 transition-transform duration-500">
+                    {/* Notch */}
+                    <div className="absolute top-0 inset-x-0 h-6 bg-slate-900 z-20 flex justify-center">
+                        <div className="w-32 h-6 bg-slate-900 rounded-b-xl"></div>
+                    </div>
+                    {/* Screen */}
+                    <img src="/app.jpeg" alt="App Screen" className="w-full h-full object-cover bg-slate-800" />
+                    {/* Reflections */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none z-10"></div>
+                 </div>
+              </div>
+            </div>
+          </GlassCard>
+        </section>
+
+        {/* Footer */}
+        <footer className="py-12 border-t border-slate-200/60 mt-12 bg-white/40 backdrop-blur-lg">
+          <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <span className="text-xl font-black text-slate-900 tracking-tight">Eduverse</span>
+            <div className="flex gap-8 text-sm font-medium text-slate-500">
+              <a href="#" className="hover:text-slate-900 transition-colors">Features</a>
+              <a href="#" className="hover:text-slate-900 transition-colors">Privacy</a>
+              <a href="#" className="hover:text-slate-900 transition-colors">Contact</a>
+            </div>
+            <p className="text-sm text-slate-400">© 2024 Eduverse Inc.</p>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }
 
 // --- HELPER COMPONENTS ---
 
-function FeaturedCard({ badge, badgeGradient, title, desc, onBtnClick }) {
+function FeaturedCard({ badge, badgeColor, title, desc, onBtnClick }) {
   return (
-    <div className="group relative bg-base-100 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 border border-base-300/50 overflow-hidden hover:-translate-y-2">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
-      <div className="card-body p-6 sm:p-8 relative z-10">
-        <div className={`inline-block px-3 py-1 rounded-full text-white text-xs font-bold mb-4 bg-gradient-to-r ${badgeGradient} shadow-lg`}>
+    <GlassCard className="p-8 flex flex-col h-full group">
+      <div className="mb-6 flex justify-between items-start">
+        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${badgeColor}`}>
           {badge}
         </div>
-        
-        <h3 className="text-xl sm:text-2xl font-bold text-base-content mb-3 group-hover:text-primary transition-colors">
-          {title}
-        </h3>
-        
-        <p className="text-sm sm:text-base text-base-content/70 leading-relaxed mb-6">
-          {desc}
-        </p>
-        
-        <div className="card-actions justify-end mt-auto">
-          <button 
-            className="btn btn-primary btn-sm group/btn hover:shadow-lg transition-all duration-300" 
-            onClick={onBtnClick}
-          >
-            Explore
-            <FiArrowRight className="ml-1 group-hover/btn:translate-x-1 transition-transform" />
-          </button>
+        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300">
+          <FiArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
         </div>
       </div>
-    </div>
+      
+      <h3 className="text-2xl font-black text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
+        {title}
+      </h3>
+      
+      <p className="text-slate-500 leading-relaxed mb-6 flex-1">
+        {desc}
+      </p>
+
+      <button onClick={onBtnClick} className="text-sm font-bold text-slate-900 underline decoration-slate-300 underline-offset-4 group-hover:decoration-indigo-500 transition-all">
+        Start Lesson
+      </button>
+    </GlassCard>
   );
 }
 
-function FeatureItem({ icon, gradient, title, desc }) {
+function FeatureItem({ icon: Icon, title, desc }) {
   return (
-    <div className="group relative bg-base-100 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-base-300/50 overflow-hidden hover:-translate-y-2">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-      
-      <div className="card-body items-center text-center p-6 sm:p-8 relative z-10 space-y-4">
-        <div className={`p-4 sm:p-5 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg group-hover:scale-110 transition-transform duration-500`}>
-          {icon}
-        </div>
-        
-        <h3 className="text-lg sm:text-xl font-bold text-base-content group-hover:text-primary transition-colors">
-          {title}
-        </h3>
-        
-        <p className="text-sm sm:text-base text-base-content/60 leading-relaxed">
-          {desc}
-        </p>
+    <GlassCard className="p-8 text-center" hoverEffect={true}>
+      <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-50 text-slate-700 flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600">
+        <Icon className="w-7 h-7" />
       </div>
-    </div>
+      <h3 className="text-lg font-black text-slate-900 mb-3">{title}</h3>
+      <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+    </GlassCard>
   );
 }

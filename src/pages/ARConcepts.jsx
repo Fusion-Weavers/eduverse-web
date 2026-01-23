@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { 
-  IoCubeOutline, 
-  IoFilterOutline, 
-  IoSwapVerticalOutline, 
-  IoArrowForward, 
-  IoLayersOutline, 
-  IoSearchOutline 
+import {
+  IoCubeOutline,
+  IoFilterOutline,
+  IoSwapVerticalOutline,
+  IoArrowForward,
+  IoLayersOutline,
+  IoSearchOutline
 } from "react-icons/io5";
 import Navbar from "../components/Navbar";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -99,7 +99,7 @@ export default function ARConcepts() {
         <Navbar />
 
         <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          
+
           {/* Header Section */}
           <div className="mb-12 max-w-4xl">
             <div className="mb-6">
@@ -117,20 +117,19 @@ export default function ARConcepts() {
 
           {/* Controls Glass Bar (Sticky) */}
           <GlassCard className="sticky top-4 z-30 mb-12 flex flex-col items-center justify-between gap-4 rounded-3xl p-2 md:flex-row" hoverEffect={false}>
-            
+
             {/* Filter Pills */}
             <div className="flex w-full flex-wrap items-center gap-1 p-1 md:w-auto">
               <div className="hidden items-center gap-2 px-4 text-sm font-medium text-slate-400 md:flex">
                 <IoFilterOutline />
               </div>
-              
+
               <button
                 onClick={() => setVisFilter("all")}
-                className={`rounded-full px-6 py-3 text-sm font-bold transition-all duration-300 ${
-                  visFilter === "all"
+                className={`rounded-full px-6 py-3 text-sm font-bold transition-all duration-300 ${visFilter === "all"
                     ? "bg-slate-900 text-white shadow-lg scale-100"
                     : "bg-transparent text-slate-500 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 All
               </button>
@@ -139,11 +138,10 @@ export default function ARConcepts() {
                 <button
                   key={t}
                   onClick={() => setVisFilter(t)}
-                  className={`rounded-full px-6 py-3 text-sm font-bold capitalize transition-all duration-300 ${
-                    visFilter === t
-                        ? "bg-slate-900 text-white shadow-lg scale-100"
-                        : "bg-transparent text-slate-500 hover:bg-slate-100"
-                  }`}
+                  className={`rounded-full px-6 py-3 text-sm font-bold capitalize transition-all duration-300 ${visFilter === t
+                      ? "bg-slate-900 text-white shadow-lg scale-100"
+                      : "bg-transparent text-slate-500 hover:bg-slate-100"
+                    }`}
                 >
                   {t}
                 </button>
@@ -182,7 +180,7 @@ export default function ARConcepts() {
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-900/5 transition-colors duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600">
                         <SubjectIcon className="h-6 w-6 text-slate-700 group-hover:text-indigo-600" />
                       </div>
-                      
+
                       {/* Action Icon */}
                       <div className="flex h-10 w-10 scale-75 items-center justify-center rounded-full bg-slate-900 text-white opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
                         <IoArrowForward className="h-5 w-5" />
@@ -198,10 +196,10 @@ export default function ARConcepts() {
                         <DifficultyBadge difficulty={concept.difficulty || 'Medium'} />
                       </div>
 
-                      <h3 className="mb-2 text-2xl font-bold leading-tight text-slate-900 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-purple-600">
+                      <h3 className="mb-2 text-2xl font-bold leading-tight text-slate-900 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-linear-to-r group-hover:from-indigo-600 group-hover:to-purple-600">
                         {concept.title}
                       </h3>
-                      
+
                       <p className="mb-6 line-clamp-2 text-sm font-medium text-slate-400">
                         {topic?.name} • {subject?.name}
                       </p>

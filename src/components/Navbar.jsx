@@ -35,22 +35,21 @@ export default function Navbar() {
   return (
     <>
       {/* Desktop & Mobile Navbar */}
-      <nav 
-        className={`sticky top-0 z-50 transition-all duration-300 border-b ${
-          scrolled 
-            ? "bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-sm" 
+      <nav
+        className={`sticky top-0 z-50 transition-all duration-300 border-b ${scrolled
+            ? "bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-sm"
             : "bg-white/50 backdrop-blur-md border-transparent"
-        }`}
+          }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
-            
+
             {/* Logo */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="group relative flex items-center gap-2"
             >
-              <div className="text-2xl sm:text-3xl font-black text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 bg-clip-text tracking-tight italic">
+              <div className="text-2xl sm:text-3xl font-black text-transparent bg-linear-to-r from-slate-900 via-slate-700 to-slate-500 bg-clip-text tracking-tight italic">
                 Eduverse
               </div>
               <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full opacity-0 group-hover:opacity-100" />
@@ -66,8 +65,8 @@ export default function Navbar() {
                     to={item.to}
                     className={`
                       relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 group overflow-hidden
-                      ${isActive 
-                        ? "text-slate-900 bg-slate-100" 
+                      ${isActive
+                        ? "text-slate-900 bg-slate-100"
                         : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
                       }
                     `}
@@ -118,20 +117,18 @@ export default function Navbar() {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`lg:hidden fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={`lg:hidden fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
         onClick={() => setOpen(false)}
       />
 
       {/* Mobile Menu Sidebar (Glass Sheet) */}
       <div
-        className={`lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white/90 backdrop-blur-2xl shadow-2xl z-50 transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`lg:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white/90 backdrop-blur-2xl shadow-2xl z-50 transform transition-transform duration-500 cubic-bezier(0.32, 0.72, 0, 1) ${open ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
-          
+
           {/* Mobile Header */}
           <div className="flex items-center justify-between p-6 border-b border-slate-100">
             <span className="text-2xl font-black text-slate-800 italic tracking-tight">
@@ -148,16 +145,16 @@ export default function Navbar() {
           {/* Mobile Links */}
           <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
             {navItems.map((item) => {
-               const isActive = location.pathname === item.to;
-               return (
+              const isActive = location.pathname === item.to;
+              return (
                 <Link
                   key={item.to}
                   to={item.to}
                   onClick={() => setOpen(false)}
                   className={`
                     flex items-center gap-4 px-4 py-3 rounded-2xl font-medium transition-all duration-200
-                    ${isActive 
-                      ? "bg-slate-100 text-slate-900" 
+                    ${isActive
+                      ? "bg-slate-100 text-slate-900"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                     }
                   `}
@@ -187,10 +184,10 @@ export default function Navbar() {
           {/* Mobile Footer */}
           <div className="p-6 border-t border-slate-100 bg-white/50">
             <div className="flex items-center justify-between mb-6">
-               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Settings</span>
-               <LanguageSelector variant="compact" showLabel={false} />
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Settings</span>
+              <LanguageSelector variant="compact" showLabel={false} />
             </div>
-            
+
             <button
               onClick={handleLogout}
               className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200 font-medium"

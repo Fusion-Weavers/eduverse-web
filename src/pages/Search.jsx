@@ -12,7 +12,7 @@ export default function Search() {
   const { handleSearchChange, setScope, executeSearch } = useSearch();
   const lastQueryRef = useRef("");
   const lastScopeRef = useRef("");
-  
+
   const query = searchParams.get("q") || "";
   const scope = searchParams.get("scope") || "all";
 
@@ -22,13 +22,13 @@ export default function Search() {
     if (query && (query !== lastQueryRef.current || scope !== lastScopeRef.current)) {
       lastQueryRef.current = query;
       lastScopeRef.current = scope;
-      
+
       handleSearchChange(query);
       setScope(scope);
       executeSearch(query);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, scope]); 
+  }, [query, scope]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
@@ -36,17 +36,17 @@ export default function Search() {
       <AmbientBackground />
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        
+
         {/* Search Header Section */}
         <div className="mx-auto max-w-3xl text-center mb-12">
           <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-slate-900/5 backdrop-blur-xl">
             <IoSearch className="text-3xl text-indigo-600" />
           </div>
-          
+
           <h1 className="mb-4 text-4xl md:text-5xl font-black tracking-tight text-slate-900">
             Explore Knowledge
           </h1>
-          
+
           <p className="mb-10 text-lg text-slate-500">
             Find specific topics, concepts, or browse through our entire STEM library.
           </p>
@@ -57,14 +57,14 @@ export default function Search() {
               without modifying the SearchBar component itself if it's reused elsewhere.
             */}
             <div className="relative z-20">
-              <SearchBar 
-                placeholder="Search subjects, topics, and concepts..." 
+              <SearchBar
+                placeholder="Search subjects, topics, and concepts..."
                 autoFocus={true}
               />
             </div>
-            
+
             {/* Decorative Glow behind search bar */}
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 opacity-20 blur-lg transition-opacity duration-300 group-focus-within:opacity-40" />
+            <div className="absolute -inset-1 rounded-full bg-linear-to-r from-indigo-500 to-purple-500 opacity-20 blur-lg transition-opacity duration-300 group-focus-within:opacity-40" />
           </div>
 
           {/* Quick Hints */}
@@ -85,7 +85,7 @@ export default function Search() {
             </div>
           )}
         </div>
-        
+
         {/* Results Section */}
         <GlassCard className="min-h-[400px] p-6 sm:p-8" hoverEffect={false}>
           <SearchResults showHeader={true} />

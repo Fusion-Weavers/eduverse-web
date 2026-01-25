@@ -934,8 +934,8 @@ input:checked+.toggle-slider:before {
 .admin-dashboard .empty-state p {
   font-size: 1.1rem;
   margin: 0;
-} 
- /* Concept Actions */
+}
+/* Concept Actions */
 .concept-actions {
   display: flex;
   gap: 8px;

@@ -23,12 +23,12 @@ Completely replaced `src/context/LanguageContext.jsx` with clean implementation:
 
 ### ✅ Fixed Issues
 
-1. **Removed Gemini imports** - No longer using Gemini API
-2. **Added Google Translate API** - Using `VITE_TRANSLATE_API_KEY`
+1. **Using Gemini API for translations** - Implemented with `VITE_GEMINI_API_KEY`
+2. **AI-powered translations** - Google Gemini 1.5 Flash model for accurate translations
 3. **Exported getUITranslation** - Now available in context
 4. **Smart caching system** - 30-day localStorage caching
 5. **Translation queue** - Prevents duplicate API calls
-6. **Batch translation** - Efficient API usage
+6. **Batch translation** - Efficient API usage with JSON array handling
 7. **Proper error handling** - Graceful fallback to English
 
 ### ✅ Context Value Now Includes

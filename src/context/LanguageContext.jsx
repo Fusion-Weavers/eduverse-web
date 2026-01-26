@@ -12,9 +12,9 @@ const SUPPORTED_LANGUAGES = [
 const DEFAULT_LANGUAGE = "en";
 const FALLBACK_LANGUAGE = "en";
 
-// Google Translate API configuration
-const TRANSLATE_API_KEY = import.meta.env.VITE_TRANSLATE_API_KEY;
-const TRANSLATE_API_URL = "https://translation.googleapis.com/language/translate/v2";
+// Google Gemini API configuration for translations
+const TRANSLATE_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 // Static translations for UI elements
 const UI_TRANSLATIONS = {
@@ -534,23 +534,36 @@ const TranslationUtils = {
     return Math.abs(hash).toString(36);
   },
 
-  // Translate text using Google Translate API
+  // Translate text using Google Gemini API
   translateText: async (text, targetLanguage, sourceLanguage = 'en') => {
     if (!TRANSLATE_API_KEY) {
       throw new Error("Translation API key not configured");
     }
 
+    const languageNames = {
+      'en': 'English',
+      'hi': 'Hindi',
+      'bn': 'Bengali'
+    };
+
     try {
-      const response = await fetch(`${TRANSLATE_API_URL}?key=${TRANSLATE_API_KEY}`, {
+      const prompt = `Translate the following text from ${languageNames[sourceLanguage] || sourceLanguage} to ${languageNames[targetLanguage] || targetLanguage}. Only provide the translation without any additional explanation or commentary:\n\n${text}`;
+
+      const response = await fetch(`${GEMINI_API_URL}?key=${TRANSLATE_API_KEY}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          q: text,
-          source: sourceLanguage,
-          target: targetLanguage,
-          format: 'text'
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 2048,
+          }
         })
       });
 
@@ -559,7 +572,13 @@ const TranslationUtils = {
       }
 
       const data = await response.json();
-      return data.data.translations[0].translatedText;
+      const translatedText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      if (!translatedText) {
+        throw new Error('No translation received from API');
+      }
+
+      return translatedText;
     } catch (error) {
       console.error('Translation API error:', error);
       throw error;
@@ -606,17 +625,30 @@ const TranslationUtils = {
 
       console.log(`🌐 Translating ${textsToTranslate.length} text segments to ${targetLanguage}...`);
 
-      // Batch translate all texts
-      const response = await fetch(`${TRANSLATE_API_URL}?key=${TRANSLATE_API_KEY}`, {
+      const languageNames = {
+        'en': 'English',
+        'hi': 'Hindi',
+        'bn': 'Bengali'
+      };
+
+      // Batch translate all texts using Gemini
+      const prompt = `Translate the following JSON array of text strings from ${languageNames[sourceLanguage] || sourceLanguage} to ${languageNames[targetLanguage] || targetLanguage}. Return ONLY a valid JSON array with the translations in the same order, without any additional text, explanation, or markdown formatting:\n\n${JSON.stringify(textsToTranslate)}`;
+
+      const response = await fetch(`${GEMINI_API_URL}?key=${TRANSLATE_API_KEY}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          q: textsToTranslate,
-          source: sourceLanguage,
-          target: targetLanguage,
-          format: 'text'
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 8192,
+          }
         })
       });
 
@@ -626,7 +658,28 @@ const TranslationUtils = {
       }
 
       const data = await response.json();
-      const translations = data.data.translations;
+      const translatedTextRaw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      if (!translatedTextRaw) {
+        throw new Error('No translation received from API');
+      }
+
+      // Parse the JSON response, removing any markdown code blocks if present
+      let translatedTexts;
+      try {
+        const cleanedResponse = translatedTextRaw.replace(/```json\n?|```\n?/g, '').trim();
+        translatedTexts = JSON.parse(cleanedResponse);
+      } catch (parseError) {
+        console.error('Failed to parse translation response:', translatedTextRaw);
+        throw new Error('Invalid translation response format');
+      }
+
+      if (!Array.isArray(translatedTexts) || translatedTexts.length !== textsToTranslate.length) {
+        throw new Error('Translation count mismatch');
+      }
+
+      // Convert to the expected format
+      const translations = translatedTexts.map(text => ({ translatedText: text }));
 
       // Reconstruct the content object with translations
       const translatedContent = JSON.parse(JSON.stringify(content));

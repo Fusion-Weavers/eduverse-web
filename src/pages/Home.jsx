@@ -73,6 +73,15 @@ export default function Home() {
     localStorage.setItem('theme', newTheme);
   };
 
+  // Search Logic
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   // --- LOGGED IN DASHBOARD ---
   if (user) {
     return (
@@ -104,9 +113,15 @@ export default function Home() {
               <input
                 type="text"
                 placeholder={t.searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="w-full bg-transparent border-none focus:ring-0 text-slate-900 placeholder:text-slate-400 text-lg py-4 px-4 font-medium"
               />
-              <button className="hidden sm:block px-8 py-3 bg-slate-900 text-white rounded-3xl font-bold hover:bg-slate-800 transition-colors">
+              <button
+                onClick={handleSearch}
+                className="hidden sm:block px-8 py-3 bg-slate-900 text-white rounded-3xl font-bold hover:bg-slate-800 transition-colors"
+              >
                 {t.search}
               </button>
             </GlassCard>

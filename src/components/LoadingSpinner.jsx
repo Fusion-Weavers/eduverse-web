@@ -1,17 +1,19 @@
 import React from 'react';
 
-export default function LoadingSpinner({ 
-  size = 'medium', 
-  message = 'Processing...', 
+import { IoSearch } from "react-icons/io5";
+
+export default function LoadingSpinner({
+  size = 'medium',
+  message = 'Processing...',
   overlay = false,
   color = 'primary',
   showProgress = false,
   progress = 0
 }) {
   const sizeStyles = {
-    small: { ring: 'w-12 h-12', text: 'text-[10px]', stroke: 2, container: 'gap-3' },
-    medium: { ring: 'w-24 h-24', text: 'text-xs', stroke: 3, container: 'gap-6' },
-    large: { ring: 'w-40 h-40', text: 'text-lg', stroke: 4, container: 'gap-8' }
+    small: { ring: 'w-12 h-12', text: 'text-[10px]', stroke: 2, container: 'gap-3', dot: 'w-1.5 h-1.5' },
+    medium: { ring: 'w-24 h-24', text: 'text-xs', stroke: 3, container: 'gap-6', dot: 'w-2 h-2' },
+    large: { ring: 'w-32 h-32', text: 'text-lg', stroke: 3, container: 'gap-8', icon: 'text-4xl' }
   };
 
   const colorConfig = {
@@ -30,7 +32,7 @@ export default function LoadingSpinner({
       <div className={`relative ${currentSize.ring} flex items-center justify-center`}>
         {/* Ambient Glow Background */}
         <div className={`absolute inset-0 rounded-full blur-xl opacity-30 animate-pulse ${currentColor.split(' ')[2]}`} />
-        
+
         {/* Glass Ring Base */}
         <svg className="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
           <circle
@@ -40,7 +42,7 @@ export default function LoadingSpinner({
             fill="none"
             stroke="currentColor"
             strokeWidth={currentSize.stroke}
-            className="text-slate-200/40"
+            className="text-slate-200"
           />
           {/* Animated Progress/Spin Ring */}
           <circle
@@ -52,7 +54,7 @@ export default function LoadingSpinner({
             strokeWidth={currentSize.stroke}
             strokeLinecap="round"
             strokeDasharray={showProgress ? `${283 * (progress / 100)} 283` : "70 283"}
-            className={`${currentColor.split(' ')[0]} transition-all duration-700 ease-out ${!showProgress && 'animate-[spin_2s_linear_infinite]'}`}
+            className={`${currentColor.split(' ')[0]} transition-all duration-700 ${!showProgress && 'animate-[spin_2s_linear_infinite]'}`}
           />
         </svg>
 
@@ -63,7 +65,13 @@ export default function LoadingSpinner({
               {Math.round(progress)}%
             </span>
           ) : (
-             <div className={`w-2 h-2 rounded-full animate-bounce ${currentColor.split(' ')[2].replace('/10', '')}`} />
+            size === 'large' ? (
+              <div className={`animate-pulse ${currentSize.icon} ${currentColor.split(' ')[1]}`}>
+                <IoSearch />
+              </div>
+            ) : (
+              <div className={`${currentSize.dot || 'w-2 h-2'} rounded-full animate-bounce ${currentColor.split(' ')[2].replace('/10', '')}`} />
+            )
           )}
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
-import { FiHome, FiBox, FiBook, FiStar, FiUser, FiShield, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import { FiHome, FiBox, FiBook, FiStar, FiUser, FiShield, FiLogOut, FiMenu, FiX, FiSearch } from "react-icons/fi";
 import LanguageSelector from "./LanguageSelector";
 
 export default function Navbar() {
@@ -24,6 +24,11 @@ export default function Navbar() {
     setOpen(false);
   };
 
+  const handleSearchClick = () => {
+    navigate("/search");
+    setOpen(false);
+  };
+
   const navItems = [
     { to: "/", label: "Home", icon: <FiHome className="w-4 h-4" /> },
     { to: "/ar", label: "3D Concepts", icon: <FiBox className="w-4 h-4" /> },
@@ -37,8 +42,8 @@ export default function Navbar() {
       {/* Desktop & Mobile Navbar */}
       <nav
         className={`sticky top-0 z-50 transition-all duration-300 border-b ${scrolled
-            ? "bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-sm"
-            : "bg-white/50 backdrop-blur-md border-transparent"
+          ? "bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-sm"
+          : "bg-white/50 backdrop-blur-md border-transparent"
           }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,6 +97,17 @@ export default function Navbar() {
                 </Link>
               )}
 
+              <button
+                onClick={handleSearchClick}
+                className={`p-2 rounded-full transition-all duration-300 mr-1 ${location.pathname === "/search"
+                    ? "bg-slate-100 text-indigo-600 shadow-xs"
+                    : "text-slate-500 hover:text-indigo-600 hover:bg-white/50"
+                  }`}
+                aria-label="Search"
+              >
+                <FiSearch className="w-5 h-5" />
+              </button>
+
               <LanguageSelector variant="compact" showLabel={false} />
 
               <button
@@ -144,6 +160,18 @@ export default function Navbar() {
 
           {/* Mobile Links */}
           <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+
+            {/* Search Item for Mobile */}
+            <button
+              onClick={handleSearchClick}
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl font-medium transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            >
+              <span className="p-2 rounded-xl bg-slate-100">
+                <FiSearch className="w-4 h-4" />
+              </span>
+              <span className="text-lg">Search</span>
+            </button>
+
             {navItems.map((item) => {
               const isActive = location.pathname === item.to;
               return (

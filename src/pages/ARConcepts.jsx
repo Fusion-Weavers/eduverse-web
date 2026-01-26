@@ -12,12 +12,14 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useContent } from "../context/ContentContext";
 import { useNavigation } from "../context/NavigationContext";
+import { useLanguage } from "../context/LanguageContext";
 import { getSubjectIcon } from "../utils/iconMap";
 import { AmbientBackground, GlassCard, Badge, DifficultyBadge, EmptyState, PrimaryButton } from "../components/ui/DesignSystem";
 
 export default function ARConcepts() {
   const { concepts, topics, subjects, loading, error } = useContent();
   const { navigateWithState } = useNavigation();
+  const { currentLanguage, getUITranslation } = useLanguage();
   const [visFilter, setVisFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("asc");
 
@@ -67,7 +69,7 @@ export default function ARConcepts() {
           <Navbar />
           <div className="flex flex-1 items-center justify-center">
             <GlassCard className="p-12" hoverEffect={false}>
-              <LoadingSpinner message="Loading 3D Experience..." />
+              <LoadingSpinner message={getUITranslation('loading3DExperience', currentLanguage)} />
             </GlassCard>
           </div>
         </div>
@@ -83,7 +85,7 @@ export default function ARConcepts() {
           <Navbar />
           <div className="flex flex-1 items-center justify-center p-6">
             <GlassCard className="mx-auto max-w-lg p-10 text-center" hoverEffect={false}>
-              <h2 className="mb-4 text-3xl font-black tracking-tight text-slate-900">System Notification</h2>
+              <h2 className="mb-4 text-3xl font-black tracking-tight text-slate-900">{getUITranslation('systemNotification', currentLanguage)}</h2>
               <p className="text-lg text-slate-500">{typeof error === "string" ? error : error.message}</p>
             </GlassCard>
           </div>
@@ -104,14 +106,14 @@ export default function ARConcepts() {
           <div className="mb-12 max-w-4xl">
             <div className="mb-6">
               <Badge variant="primary" className="gap-2">
-                <IoCubeOutline className="h-4 w-4" /> 3D Learning
+                <IoCubeOutline className="h-4 w-4" /> {getUITranslation('arLearning', currentLanguage)}
               </Badge>
             </div>
             <h1 className="mb-6 text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
-              Immersive Visual Concepts
+              {getUITranslation('immersiveVisualConcepts', currentLanguage)}
             </h1>
             <p className="max-w-2xl text-xl leading-relaxed text-slate-500">
-              Explore {arConcepts.length} interactive visualizations. Interact with complex STEM topics through Augmented Reality and 3D modeling directly in your browser.
+              {getUITranslation('exploreInteractiveVis', currentLanguage).replace('{count}', arConcepts.length)}
             </p>
           </div>
 
@@ -127,11 +129,11 @@ export default function ARConcepts() {
               <button
                 onClick={() => setVisFilter("all")}
                 className={`rounded-full px-6 py-3 text-sm font-bold transition-all duration-300 ${visFilter === "all"
-                    ? "bg-slate-900 text-white shadow-lg scale-100"
-                    : "bg-transparent text-slate-500 hover:bg-slate-100"
+                  ? "bg-slate-900 text-white shadow-lg scale-100"
+                  : "bg-transparent text-slate-500 hover:bg-slate-100"
                   }`}
               >
-                All
+                {getUITranslation('all', currentLanguage)}
               </button>
 
               {availableTypes.map((t) => (
@@ -139,8 +141,8 @@ export default function ARConcepts() {
                   key={t}
                   onClick={() => setVisFilter(t)}
                   className={`rounded-full px-6 py-3 text-sm font-bold capitalize transition-all duration-300 ${visFilter === t
-                      ? "bg-slate-900 text-white shadow-lg scale-100"
-                      : "bg-transparent text-slate-500 hover:bg-slate-100"
+                    ? "bg-slate-900 text-white shadow-lg scale-100"
+                    : "bg-transparent text-slate-500 hover:bg-slate-100"
                     }`}
                 >
                   {t}
@@ -154,7 +156,7 @@ export default function ARConcepts() {
                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
                 className="flex items-center gap-2 rounded-full border border-transparent bg-slate-100/50 px-5 py-3 text-sm font-bold text-slate-600 transition-all duration-300 hover:border-slate-200 hover:bg-white"
               >
-                <span className="text-xs uppercase tracking-wide">Sort</span>
+                <span className="text-xs uppercase tracking-wide">{getUITranslation('sort', currentLanguage)}</span>
                 <IoSwapVerticalOutline className={sortOrder === "asc" ? "rotate-0" : "rotate-180 transition-transform"} />
               </button>
             </div>
@@ -188,10 +190,9 @@ export default function ARConcepts() {
                     </div>
 
                     <div className="flex-1">
-                      {/* Badges */}
                       <div className="mb-4 flex flex-wrap items-center gap-2">
                         <Badge variant="default">
-                          {concept.visualizationType || "AR Model"}
+                          {concept.visualizationType || getUITranslation('arModel', currentLanguage)}
                         </Badge>
                         <DifficultyBadge difficulty={concept.difficulty || 'Medium'} />
                       </div>
@@ -207,7 +208,7 @@ export default function ARConcepts() {
 
                     {/* Footer */}
                     <div className="mt-auto flex items-center border-t border-slate-200/60 pt-6 text-sm font-medium text-slate-400 transition-colors group-hover:text-slate-600">
-                      <span>Click to launch experience</span>
+                      <span>{getUITranslation('clickToLaunch', currentLanguage)}</span>
                     </div>
                   </GlassCard>
                 );
@@ -216,11 +217,11 @@ export default function ARConcepts() {
           ) : (
             <EmptyState
               icon={IoLayersOutline}
-              title="No 3D concepts found"
-              description="We couldn't find any concepts matching your current filters. Try selecting a different category."
+              title={getUITranslation('noArConcepts', currentLanguage)}
+              description={getUITranslation('noArConceptsDesc', currentLanguage)}
               action={
                 <PrimaryButton onClick={() => setVisFilter('all')}>
-                  Clear Filters
+                  {getUITranslation('clearFilters', currentLanguage)}
                 </PrimaryButton>
               }
             />

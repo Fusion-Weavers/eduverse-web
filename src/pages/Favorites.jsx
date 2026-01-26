@@ -1,16 +1,17 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { 
-  IoCloudUploadOutline, 
-  IoGlassesOutline, 
-  IoHeartOutline, 
-  IoHourglassOutline, 
+import {
+  IoCloudUploadOutline,
+  IoGlassesOutline,
+  IoHeartOutline,
+  IoHourglassOutline,
   IoWarningOutline,
   IoArrowForward
 } from "react-icons/io5";
 import Navbar from "../components/Navbar";
 import FavoriteButton from "../components/FavoriteButton";
 import { useFavorites } from "../context/FavoritesContext";
+import { useLanguage } from "../context/LanguageContext";
 import { useContent } from "../context/ContentContext";
 import { getSubjectIcon } from "../utils/iconMap";
 import { AmbientBackground, GlassCard, Badge, DifficultyBadge, EmptyState, PrimaryButton, Alert } from "../components/ui/DesignSystem";
@@ -24,6 +25,7 @@ export default function Favorites() {
     syncStatus,
     getPendingActionsCount
   } = useFavorites();
+  const { currentLanguage, getUITranslation } = useLanguage();
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -50,7 +52,7 @@ export default function Favorites() {
     if (syncStatus === 'syncing') {
       return (
         <Alert variant="info" icon={IoHourglassOutline} className="mb-8">
-          <span>Syncing favorites...</span>
+          <span>{getUITranslation('syncingFavorites', currentLanguage)}</span>
         </Alert>
       );
     }
@@ -58,7 +60,7 @@ export default function Favorites() {
     if (syncStatus === 'pending' && pendingCount > 0) {
       return (
         <Alert variant="warning" icon={IoCloudUploadOutline} className="mb-8">
-          <span>{pendingCount} change{pendingCount !== 1 ? 's' : ''} pending sync</span>
+          <span>{pendingCount} {getUITranslation('pendingSync', currentLanguage)}</span>
         </Alert>
       );
     }
@@ -70,12 +72,12 @@ export default function Favorites() {
   const renderEmptyState = () => (
     <EmptyState
       icon={IoHeartOutline}
-      title="No favorites yet"
-      description="Start exploring STEM concepts and topics. Use the heart button to save your favorite content for easy access later."
+      title={getUITranslation('noFavorites', currentLanguage)}
+      description={getUITranslation('startExploring', currentLanguage)}
       action={
         <Link to="/subjects">
           <PrimaryButton>
-            Explore Subjects <IoArrowForward />
+            {getUITranslation('exploreSubjects', currentLanguage)} <IoArrowForward />
           </PrimaryButton>
         </Link>
       }
@@ -100,14 +102,14 @@ export default function Favorites() {
             </h3>
           </div>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {favoriteTopics.length + favoriteConcepts.length} Saved
+            {favoriteTopics.length + favoriteConcepts.length} {getUITranslation('saved', currentLanguage)}
           </span>
         </div>
 
         {/* Topics Grid */}
         {favoriteTopics.length > 0 && (
           <div className="mb-10">
-            <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Topics</h4>
+            <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">{getUITranslation('topicsCount', currentLanguage)}</h4>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {favoriteTopics.map(topic => (
                 <GlassCard key={topic.id} className="flex flex-col p-6">
@@ -119,7 +121,7 @@ export default function Favorites() {
                       {topic.name}
                     </Link>
                     <div className="ml-2 shrink-0 transform transition-transform duration-200 hover:scale-110 active:scale-95">
-                       <FavoriteButton itemId={topic.id} itemType="topic" size="small" />
+                      <FavoriteButton itemId={topic.id} itemType="topic" size="small" />
                     </div>
                   </div>
                   <p className="mb-6 line-clamp-2 flex-grow text-sm leading-relaxed text-slate-500">
@@ -143,7 +145,7 @@ export default function Favorites() {
         {/* Concepts Grid */}
         {favoriteConcepts.length > 0 && (
           <div>
-             <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Concepts</h4>
+            <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Concepts</h4>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {favoriteConcepts.map(concept => (
                 <GlassCard key={concept.id} className="flex flex-col p-6">
@@ -158,19 +160,18 @@ export default function Favorites() {
                       <FavoriteButton itemId={concept.id} itemType="concept" size="small" />
                     </div>
                   </div>
-                  
+
                   <div className="mb-4">
-                     <p className="text-xs font-medium text-slate-400">
-                        Topic: <Link to={`/subjects/${subject.id}/${concept.topicId}`} className="text-indigo-500 hover:underline">{concept.topicName}</Link>
-                     </p>
+                    <p className="text-xs font-medium text-slate-400">
+                      Topic: <Link to={`/subjects/${subject.id}/${concept.topicId}`} className="text-indigo-500 hover:underline">{concept.topicName}</Link>
+                    </p>
                   </div>
 
                   <div className="mt-auto flex items-center gap-3 pt-4 border-t border-slate-100">
-                    <span className={`h-2 w-2 rounded-full ${
-                      concept.difficulty === 'beginner' ? 'bg-emerald-400' :
-                      concept.difficulty === 'intermediate' ? 'bg-amber-400' :
-                      'bg-rose-400'
-                    }`} />
+                    <span className={`h-2 w-2 rounded-full ${concept.difficulty === 'beginner' ? 'bg-emerald-400' :
+                        concept.difficulty === 'intermediate' ? 'bg-amber-400' :
+                          'bg-rose-400'
+                      }`} />
                     <span className="text-xs font-medium text-slate-500">
                       {concept.estimatedReadTime} min read
                     </span>
@@ -195,18 +196,18 @@ export default function Favorites() {
       <AmbientBackground />
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        
+
         {/* Page Header */}
         <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div>
             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
-              My Favorites
+              {getUITranslation('myFavorites', currentLanguage)}
             </h2>
             <p className="mt-2 text-lg text-slate-500 font-medium">
-              Your curated collection of STEM topics and concepts.
+              {getUITranslation('favoritesSubtitle', currentLanguage)}
             </p>
           </div>
-          
+
           {totalFavorites > 0 && (
             <GlassCard className="flex items-center gap-4 p-2" hoverEffect={false}>
               <span className="pl-4 text-sm font-semibold text-slate-600">
@@ -216,7 +217,7 @@ export default function Favorites() {
                 onClick={() => setShowClearConfirm(true)}
                 className="rounded-xl border border-slate-200/60 bg-white/50 px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-red-500 hover:shadow-md active:scale-95"
               >
-                Clear All
+                {getUITranslation('clearAll', currentLanguage)}
               </button>
             </GlassCard>
           )}
@@ -242,35 +243,34 @@ export default function Favorites() {
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity"
             onClick={() => setShowClearConfirm(false)}
           />
-          
+
           {/* Modal Panel */}
           <GlassCard className="relative w-full max-w-md p-8" hoverEffect={false}>
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
-               <IoWarningOutline className="h-6 w-6" />
+              <IoWarningOutline className="h-6 w-6" />
             </div>
-            
-            <h3 className="mb-2 text-xl font-bold text-slate-900">Clear all favorites?</h3>
+
+            <h3 className="mb-2 text-xl font-bold text-slate-900">{getUITranslation('confirmClearFavorites', currentLanguage)}</h3>
             <p className="mb-8 text-slate-500">
-              This will remove all {totalFavorites} favorite{totalFavorites !== 1 ? 's' : ''} from your account. 
-              This action cannot be undone.
+              {getUITranslation('confirmClearDesc', currentLanguage)}
             </p>
-            
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowClearConfirm(false)}
                 className="rounded-full border border-slate-200 bg-transparent px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
               >
-                Cancel
+                {getUITranslation('cancel', currentLanguage)}
               </button>
               <button
                 onClick={handleClearAll}
                 className="rounded-full bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/30 transition-all hover:bg-red-600 hover:-translate-y-0.5"
               >
-                Yes, Clear All
+                {getUITranslation('yesClearAll', currentLanguage)}
               </button>
             </div>
           </GlassCard>

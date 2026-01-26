@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
 import { FiHome, FiBox, FiBook, FiStar, FiUser, FiShield, FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import LanguageSelector from "./LanguageSelector";
 
@@ -10,6 +11,7 @@ export default function Navbar() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { currentLanguage, getUITranslation } = useLanguage();
 
   // Handle scroll effect for glass intensity
   useEffect(() => {
@@ -25,11 +27,11 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { to: "/", label: "Home", icon: <FiHome className="w-4 h-4" /> },
-    { to: "/ar", label: "3D Concepts", icon: <FiBox className="w-4 h-4" /> },
-    { to: "/subjects", label: "Subjects", icon: <FiBook className="w-4 h-4" /> },
-    { to: "/favorites", label: "Favorites", icon: <FiStar className="w-4 h-4" /> },
-    { to: "/profile", label: "Profile", icon: <FiUser className="w-4 h-4" /> },
+    { to: "/", label: getUITranslation('home', currentLanguage), icon: <FiHome className="w-4 h-4" /> },
+    { to: "/ar", label: getUITranslation('models3D', currentLanguage), icon: <FiBox className="w-4 h-4" /> },
+    { to: "/subjects", label: getUITranslation('subjects', currentLanguage), icon: <FiBook className="w-4 h-4" /> },
+    { to: "/favorites", label: getUITranslation('favorites', currentLanguage), icon: <FiStar className="w-4 h-4" /> },
+    { to: "/profile", label: getUITranslation('profile', currentLanguage), icon: <FiUser className="w-4 h-4" /> },
   ];
 
   return (
@@ -37,8 +39,8 @@ export default function Navbar() {
       {/* Desktop & Mobile Navbar */}
       <nav
         className={`sticky top-0 z-50 transition-all duration-300 border-b ${scrolled
-            ? "bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-sm"
-            : "bg-white/50 backdrop-blur-md border-transparent"
+          ? "bg-white/80 backdrop-blur-xl border-slate-200/60 shadow-sm"
+          : "bg-white/50 backdrop-blur-md border-transparent"
           }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,7 +90,7 @@ export default function Navbar() {
                   className="flex items-center gap-2 px-4 py-2 rounded-full text-slate-700 bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 hover:text-slate-900 transition-all duration-300 font-medium text-sm group mr-2"
                 >
                   <FiShield className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
-                  <span>Admin</span>
+                  <span>{getUITranslation('admin', currentLanguage)}</span>
                 </Link>
               )}
 
@@ -176,7 +178,7 @@ export default function Navbar() {
                 <span className="p-2 rounded-xl bg-orange-100 text-orange-600">
                   <FiShield className="w-4 h-4" />
                 </span>
-                <span className="text-lg font-medium">Admin Panel</span>
+                <span className="text-lg font-medium">{getUITranslation('admin', currentLanguage)} Panel</span>
               </Link>
             )}
           </div>
@@ -184,7 +186,7 @@ export default function Navbar() {
           {/* Mobile Footer */}
           <div className="p-6 border-t border-slate-100 bg-white/50">
             <div className="flex items-center justify-between mb-6">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Settings</span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{getUITranslation('settings', currentLanguage)}</span>
               <LanguageSelector variant="compact" showLabel={false} />
             </div>
 
@@ -193,7 +195,7 @@ export default function Navbar() {
               className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200 font-medium"
             >
               <FiLogOut className="w-5 h-5" />
-              <span>Sign Out</span>
+              <span>{getUITranslation('signOut', currentLanguage)}</span>
             </button>
           </div>
         </div>

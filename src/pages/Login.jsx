@@ -2,14 +2,16 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate, Link } from "react-router-dom";
-import { 
-  IoMailOutline, 
-  IoLockClosedOutline, 
-  IoArrowForward, 
+import {
+  IoMailOutline,
+  IoLockClosedOutline,
+  IoArrowForward,
   IoAlertCircleOutline,
-  IoFingerPrintOutline 
+  IoFingerPrintOutline
 } from "react-icons/io5";
 import { AmbientBackground, GlassCard, Input, PrimaryButton, Alert } from "../components/ui/DesignSystem";
+import { useLanguage } from "../context/LanguageContext";
+import LanguageSelector from "../components/LanguageSelector";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,6 +19,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { currentLanguage, getUITranslation } = useLanguage();
 
   const login = async (e) => {
     e.preventDefault();
@@ -24,7 +27,7 @@ export default function Login() {
     setIsLoading(true);
 
     if (!email || !password) {
-      setError("Please fill in all fields to continue.");
+      setError(getUITranslation('pleaseFillAll', currentLanguage));
       setIsLoading(false);
       return;
     }
@@ -50,16 +53,21 @@ export default function Login() {
     <div className="relative flex min-h-screen w-full items-center justify-center bg-slate-50 px-4 font-sans text-slate-900 overflow-hidden">
       <AmbientBackground />
 
+      {/* Language Selector */}
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageSelector variant="compact" />
+      </div>
+
       {/* Glass Card */}
       <GlassCard className="relative z-10 w-full max-w-md p-8 sm:p-10" hoverEffect={false}>
-        
+
         {/* Header */}
         <div className="mb-10 text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-slate-900/5">
             <IoFingerPrintOutline className="text-3xl text-indigo-600" />
           </div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-900">Welcome Back</h2>
-          <p className="mt-2 text-slate-500">Enter your credentials to access your account.</p>
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">{getUITranslation('welcomeBack', currentLanguage)}</h2>
+          <p className="mt-2 text-slate-500">{getUITranslation('enterCredentials', currentLanguage)}</p>
         </div>
 
         {/* Error Alert */}
@@ -73,7 +81,7 @@ export default function Login() {
           {/* Email Input */}
           <Input
             type="email"
-            label="Email Address"
+            label={getUITranslation('emailAddress', currentLanguage)}
             placeholder="you@example.com"
             icon={IoMailOutline}
             value={email}
@@ -84,10 +92,10 @@ export default function Login() {
           <div className="space-y-2">
             <div className="flex items-center justify-between ml-1">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Password
+                {getUITranslation('password', currentLanguage)}
               </label>
               <a href="#" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline">
-                Forgot password?
+                {getUITranslation('forgotPassword', currentLanguage)}
               </a>
             </div>
             <Input
@@ -108,11 +116,11 @@ export default function Login() {
             {isLoading ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                Signing in...
+                {getUITranslation('signingIn', currentLanguage)}
               </span>
             ) : (
               <>
-                Sign In
+                {getUITranslation('signIn', currentLanguage)}
                 <IoArrowForward className="transition-transform duration-300 group-hover:translate-x-1" />
               </>
             )}
@@ -121,12 +129,12 @@ export default function Login() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-slate-500">
-          Don’t have an account?{" "}
-          <Link 
-            to="/signup" 
+          {getUITranslation('donHaveAccount', currentLanguage)}{" "}
+          <Link
+            to="/signup"
             className="font-bold text-indigo-600 transition-colors hover:text-indigo-700 hover:underline"
           >
-            Create account
+            {getUITranslation('createAccount', currentLanguage)}
           </Link>
         </div>
       </GlassCard>

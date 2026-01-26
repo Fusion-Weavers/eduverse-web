@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
-import { 
-  IoArrowDownOutline, IoArrowUpOutline, IoLibraryOutline, 
-  IoSearchOutline, IoStar, IoSwapVerticalOutline, IoTimeOutline 
+import {
+  IoArrowDownOutline, IoArrowUpOutline, IoLibraryOutline,
+  IoSearchOutline, IoStar, IoSwapVerticalOutline, IoTimeOutline
 } from "react-icons/io5";
 import { useContent } from "../context/ContentContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "../context/NavigationContext";
+import { useLanguage } from "../context/LanguageContext";
 import FavoriteButton from "./FavoriteButton";
 import TopicFilter from "./TopicFilter";
 import LoadingSpinner from "./LoadingSpinner";
@@ -18,10 +19,11 @@ export default function TopicList({ subjectId, onTopicSelect }) {
   const { getTopicsBySubject, subjects, trackUserActivity, loading, error } = useContent();
   const { isTopicFavorited } = useFavorites();
   const { saveSortState, getSortState, navigateWithState } = useNavigation();
+  const { currentLanguage, getUITranslation } = useLanguage();
 
   const sortKey = `topic-sort-${subjectId}`;
   const savedSortState = getSortState(sortKey);
-  
+
   const [sortBy, setSortBy] = useState(savedSortState.sortBy || "name");
   const [sortOrder, setSortOrder] = useState(savedSortState.sortOrder || "asc");
   const [filters, setFilters] = useState({ difficulty: 'all', searchTerm: '', showFavoritesOnly: false });
@@ -34,29 +36,59 @@ export default function TopicList({ subjectId, onTopicSelect }) {
   }, [sortBy, sortOrder, sortKey, saveSortState]);
 
   const filteredAndSortedTopics = useMemo(() => {
+    // Critical safeguard: Check if topics exist and is an array
+    if (!topics || !Array.isArray(topics)) return [];
+
     let filtered = [...topics];
-    if (filters.difficulty !== 'all') filtered = filtered.filter(t => t.difficulty === filters.difficulty);
+
+    // Safety check filter
+    filtered = filtered.filter(t => t && typeof t === 'object');
+
+    if (filters.difficulty !== 'all') {
+      filtered = filtered.filter(t => t.difficulty === filters.difficulty);
+    }
+
     if (filters.searchTerm) {
       const term = filters.searchTerm.toLowerCase();
-      filtered = filtered.filter(t => t.name.toLowerCase().includes(term) || t.description.toLowerCase().includes(term));
+      filtered = filtered.filter(t =>
+        (t.name && t.name.toLowerCase().includes(term)) ||
+        (t.description && t.description.toLowerCase().includes(term))
+      );
     }
-    if (filters.showFavoritesOnly) filtered = filtered.filter(t => isTopicFavorited(t.id));
+
+    if (filters.showFavoritesOnly) {
+      filtered = filtered.filter(t => isTopicFavorited(t.id));
+    }
 
     return filtered.sort((a, b) => {
+      // Safe access to properties for sorting
+      const aName = a.name || '';
+      const bName = b.name || '';
+
       let comp = 0;
-      if (sortBy === "name") comp = a.name.localeCompare(b.name);
-      else if (sortBy === "difficulty") {
+      if (sortBy === "name") {
+        comp = aName.localeCompare(bName);
+      } else if (sortBy === "difficulty") {
         const order = { "beginner": 1, "intermediate": 2, "advanced": 3 };
-        comp = order[a.difficulty] - order[b.difficulty];
-      } else if (sortBy === "conceptCount") comp = a.conceptCount - b.conceptCount;
-      else if (sortBy === "estimatedTime") comp = a.estimatedTime - b.estimatedTime;
+        const aDiff = a.difficulty ? a.difficulty.toLowerCase() : 'beginner';
+        const bDiff = b.difficulty ? b.difficulty.toLowerCase() : 'beginner';
+        comp = (order[aDiff] || 1) - (order[bDiff] || 1);
+      } else if (sortBy === "conceptCount") {
+        comp = (a.conceptCount || 0) - (b.conceptCount || 0);
+      } else if (sortBy === "estimatedTime") {
+        comp = (a.estimatedTime || 0) - (b.estimatedTime || 0);
+      }
       return sortOrder === "asc" ? comp : -comp;
     });
   }, [topics, filters, sortBy, sortOrder, isTopicFavorited]);
 
   const handleSortChange = (newSortBy) => {
-    if (sortBy === newSortBy) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    else { setSortBy(newSortBy); setSortOrder("asc"); }
+    if (sortBy === newSortBy) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder("asc");
+    }
   };
 
   const getSortIcon = (field) => {
@@ -90,20 +122,23 @@ export default function TopicList({ subjectId, onTopicSelect }) {
             <div className="w-full lg:w-auto">
               <TopicFilter subjectId={subjectId} onFilterChange={setFilters} />
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mr-2">Sort By</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mr-2">{getUITranslation('sortBy', currentLanguage) === 'sortBy' ? 'Sort By' : getUITranslation('sortBy', currentLanguage)}</span>
               {["name", "difficulty", "conceptCount", "estimatedTime"].map((field) => (
                 <button
                   key={field}
                   onClick={() => handleSortChange(field)}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border ${
-                    sortBy === field 
-                    ? "bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20" 
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border ${sortBy === field
+                    ? "bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20"
                     : "bg-white/50 border-white/80 text-slate-600 hover:bg-white hover:border-slate-300"
-                  }`}
+                    }`}
                 >
-                  {field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  {field === 'conceptCount' ? (getUITranslation('concepts', currentLanguage) || 'Concepts') :
+                    field === 'estimatedTime' ? (getUITranslation('time', currentLanguage) || 'Time') :
+                      field === 'difficulty' ? (getUITranslation('difficulty.title', currentLanguage) || 'Difficulty') :
+                        field === 'name' ? (getUITranslation('name', currentLanguage) || 'Name') :
+                          field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                   {getSortIcon(field)}
                 </button>
               ))}
@@ -119,10 +154,9 @@ export default function TopicList({ subjectId, onTopicSelect }) {
                 className="group relative bg-white/70 backdrop-blur-xl border border-white/60 rounded-2rem p-8 transition-all duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-2xl hover:shadow-indigo-500/10 cursor-pointer overflow-hidden"
               >
                 {/* Visual Accent */}
-                <div className={`absolute top-0 left-0 w-2 h-full transition-colors duration-300 ${
-                  topic.difficulty === 'beginner' ? 'bg-emerald-400' : 
+                <div className={`absolute top-0 left-0 w-2 h-full transition-colors duration-300 ${topic.difficulty === 'beginner' ? 'bg-emerald-400' :
                   topic.difficulty === 'intermediate' ? 'bg-amber-400' : 'bg-rose-400'
-                }`} />
+                  }`} />
 
                 <div className="flex justify-between items-start mb-6">
                   <h4 className="text-2xl font-black text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">
@@ -146,12 +180,11 @@ export default function TopicList({ subjectId, onTopicSelect }) {
                       <IoTimeOutline className="text-lg" /> {topic.estimatedTime}m
                     </span>
                   </div>
-                  
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
-                    topic.difficulty === 'beginner' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
-                    topic.difficulty === 'intermediate' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
-                    'bg-rose-50 text-rose-600 border-rose-100'
-                  }`}>
+
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border ${topic.difficulty === 'beginner' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                    topic.difficulty === 'intermediate' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                      'bg-rose-50 text-rose-600 border-rose-100'
+                    }`}>
                     {topic.difficulty}
                   </span>
                 </div>

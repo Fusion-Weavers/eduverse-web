@@ -25,42 +25,8 @@ export default function Home() {
   // Note: Dark mode logic retained but visual styling below is strictly "Light/Glass" as per design system requirements.
   const [darkMode, setDarkMode] = useState(false);
 
-  // UI Translations
-  const t = {
-    welcomeBack: currentLanguage === 'hi' ? 'वापसी पर स्वागत है' : currentLanguage === 'bn' ? 'স্বাগতম' : 'Welcome back',
-    learner: currentLanguage === 'hi' ? 'शिक्षार्थी' : currentLanguage === 'bn' ? 'শিক্ষার্থী' : 'Learner',
-    readyToContinue: currentLanguage === 'hi' ? 'जारी रखने के लिए तैयार हैं? आपके 3D मॉडल और सहेजे गए पाठ प्रतीक्षा कर रहे हैं।' : currentLanguage === 'bn' ? 'চালিয়ে যেতে প্রস্তুত? আপনার 3D মডেল এবং সংরক্ষিত পাঠ অপেক্ষা করছে।' : 'Ready to continue your exploration? Your 3D models and saved lessons are waiting.',
-    searchPlaceholder: currentLanguage === 'hi' ? 'विषय, विषय-सूची और अवधारणाएं खोजें...' : currentLanguage === 'bn' ? 'বিষয়, বিষয়সূচি এবং ধারণা অনুসন্ধান করুন...' : 'Search subjects, topics, and concepts...',
-    search: currentLanguage === 'hi' ? 'खोजें' : currentLanguage === 'bn' ? 'অনুসন্ধান' : 'Search',
-    quickAccess: currentLanguage === 'hi' ? 'त्वरित पहुंच' : currentLanguage === 'bn' ? 'দ্রুত প্রবেশ' : 'Quick Access',
-    subjects: getUITranslation('subjects', currentLanguage),
-    models3D: currentLanguage === 'hi' ? '3D मॉडल' : currentLanguage === 'bn' ? '3D মডেল' : '3D Models',
-    favorites: getUITranslation('favorites', currentLanguage),
-    profile: getUITranslation('profile', currentLanguage),
-    featuredTopics: currentLanguage === 'hi' ? 'विशेष विषय' : currentLanguage === 'bn' ? 'বৈশিষ্ট্যযুক্ত বিষয়' : 'Featured Topics',
-    curatedPaths: currentLanguage === 'hi' ? 'इस सप्ताह ट्रेंडिंग क्यूरेटेड लर्निंग पाथ।' : currentLanguage === 'bn' ? 'এই সপ্তাহে ট্রেন্ডিং কিউরেটেড শেখার পথ।' : 'Curated learning paths trending this week.',
-    popular: currentLanguage === 'hi' ? 'लोकप्रिय' : currentLanguage === 'bn' ? 'জনপ্রিয়' : 'Popular',
-    new: currentLanguage === 'hi' ? 'नया' : currentLanguage === 'bn' ? 'নতুন' : 'New',
-    trending: currentLanguage === 'hi' ? 'ट्रेंडिंग' : currentLanguage === 'bn' ? 'ট্রেন্ডিং' : 'Trending',
-    physicsFundamentals: currentLanguage === 'hi' ? 'भौतिकी के मूल सिद्धांत' : currentLanguage === 'bn' ? 'পদার্থবিজ্ঞানের মৌলিক বিষয়' : 'Physics Fundamentals',
-    physicsFundamentalsDesc: currentLanguage === 'hi' ? 'गति, ऊर्जा और बलों की मुख्य अवधारणाओं में महारत हासिल करें।' : currentLanguage === 'bn' ? 'গতি, শক্তি এবং বলের মূল ধারণাগুলি আয়ত্ত করুন।' : 'Master the core concepts of motion, energy, and forces.',
-    biologyIn3D: currentLanguage === 'hi' ? '3D में जीव विज्ञान' : currentLanguage === 'bn' ? '3D তে জীববিজ্ঞান' : 'Biology in 3D',
-    biologyIn3DDesc: currentLanguage === 'hi' ? 'इमर्सिव मॉडल के साथ मानव शरीर रचना और प्रणालियों का अन्वेषण करें।' : currentLanguage === 'bn' ? 'নিমজ্জিত মডেল দিয়ে মানব শারীরস্থান এবং সিস্টেম অন্বেষণ করুন।' : 'Explore human anatomy and systems with immersive models.',
-    chemistryReactions: currentLanguage === 'hi' ? 'रसायन विज्ञान प्रतिक्रियाएं' : currentLanguage === 'bn' ? 'রসায়ন বিক্রিয়া' : 'Chemistry Reactions',
-    chemistryReactionsDesc: currentLanguage === 'hi' ? 'परमाणु संरचनाओं और रासायनिक प्रतिक्रियाओं को समझें।' : currentLanguage === 'bn' ? 'পারমাণবিক কাঠামো এবং রাসায়নিক বিক্রিয়া বুঝুন।' : 'Understand atomic structures and chemical reactions.',
-    startLesson: currentLanguage === 'hi' ? 'पाठ शुरू करें' : currentLanguage === 'bn' ? 'পাঠ শুরু করুন' : 'Start Lesson',
-    // Landing page
-    futureOfEducation: currentLanguage === 'hi' ? 'शिक्षा का भविष्य' : currentLanguage === 'bn' ? 'শিক্ষার ভবিষ্যৎ' : 'The Future of Education',
-    exploreSTEM: currentLanguage === 'hi' ? 'STEM का अन्वेषण करें' : currentLanguage === 'bn' ? 'STEM অন্বেষণ করুন' : 'Explore STEM',
-    withARMagic: currentLanguage === 'hi' ? 'AR जादू के साथ' : currentLanguage === 'bn' ? 'AR জাদু দিয়ে' : 'with AR Magic',
-    heroDesc: currentLanguage === 'hi' ? 'संवर्धित वास्तविकता के माध्यम से इंटरैक्टिव सीखने का अनुभव करें। अपनी पसंदीदा भाषा में इमर्सिव 3D विज़ुअलाइज़ेशन के साथ जटिल STEM अवधारणाओं में महारत हासिल करें।' : currentLanguage === 'bn' ? 'অগমেন্টেড রিয়েলিটির মাধ্যমে ইন্টারেক্টিভ শেখার অভিজ্ঞতা নিন। আপনার পছন্দের ভাষায় নিমজ্জিত 3D ভিজ্যুয়ালাইজেশন দিয়ে জটিল STEM ধারণাগুলি আয়ত্ত করুন।' : 'Experience interactive learning through augmented reality. Master complex STEM concepts in your preferred language with immersive 3D visualizations.',
-    startLearningFree: currentLanguage === 'hi' ? 'मुफ्त में सीखना शुरू करें' : currentLanguage === 'bn' ? 'বিনামূল্যে শেখা শুরু করুন' : 'Start Learning Free',
-    view3DDemo: currentLanguage === 'hi' ? '3D डेमो देखें' : currentLanguage === 'bn' ? '3D ডেমো দেখুন' : 'View 3D Demo',
-    signIn: currentLanguage === 'hi' ? 'साइन इन' : currentLanguage === 'bn' ? 'সাইন ইন' : 'Sign In',
-    getStarted: currentLanguage === 'hi' ? 'शुरू करें' : currentLanguage === 'bn' ? 'শুরু করুন' : 'Get Started',
-    whyChoose: currentLanguage === 'hi' ? 'Eduverse क्यों चुनें?' : currentLanguage === 'bn' ? 'কেন Eduverse বেছে নেবেন?' : 'Why Choose Eduverse?',
-    immersiveTech: currentLanguage === 'hi' ? 'इमर्सिव तकनीक पारंपरिक पाठ्यक्रम से मिलती है।' : currentLanguage === 'bn' ? 'নিমজ্জিত প্রযুক্তি ঐতিহ্যবাহী পাঠ্যক্রমের সাথে মিলিত হয়।' : 'Immersive technology meets traditional curriculum.'
-  };
+  // UI Translations - Now using centralized context
+  // const t = { ... } // Removed inline translations
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -85,13 +51,13 @@ export default function Home() {
           {/* Welcome Header */}
           <section className="relative z-10">
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
-              {t.welcomeBack}, <br />
+              {getUITranslation('welcomeBack', currentLanguage)}, <br />
               <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-purple-600">
-                {user.displayName || t.learner}
+                {user.displayName || getUITranslation('learner', currentLanguage)}
               </span>
             </h1>
             <p className="text-xl text-slate-500 max-w-2xl font-medium">
-              {t.readyToContinue}
+              {getUITranslation('readyToContinue', currentLanguage)}
             </p>
           </section>
 
@@ -103,11 +69,11 @@ export default function Home() {
               </div>
               <input
                 type="text"
-                placeholder={t.searchPlaceholder}
+                placeholder={getUITranslation('searchPlaceholder', currentLanguage)}
                 className="w-full bg-transparent border-none focus:ring-0 text-slate-900 placeholder:text-slate-400 text-lg py-4 px-4 font-medium"
               />
               <button className="hidden sm:block px-8 py-3 bg-slate-900 text-white rounded-3xl font-bold hover:bg-slate-800 transition-colors">
-                {t.search}
+                {getUITranslation('search', currentLanguage)}
               </button>
             </GlassCard>
           </section>
@@ -116,14 +82,14 @@ export default function Home() {
           <section>
             <SectionHeading
               icon={FiZap}
-              title={t.quickAccess}
+              title={getUITranslation('quickAccess', currentLanguage)}
             />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { label: t.subjects, icon: FiBook, path: '/subjects', color: 'bg-blue-50 text-blue-600' },
-                { label: t.models3D, icon: FiBox, path: '/ar', color: 'bg-purple-50 text-purple-600' },
-                { label: t.favorites, icon: FiStar, path: '/favorites', color: 'bg-amber-50 text-amber-600' },
-                { label: t.profile, icon: FiUser, path: '/profile', color: 'bg-emerald-50 text-emerald-600' },
+                { label: getUITranslation('subjects', currentLanguage), icon: FiBook, path: '/subjects', color: 'bg-blue-50 text-blue-600' },
+                { label: getUITranslation('models3D', currentLanguage), icon: FiBox, path: '/ar', color: 'bg-purple-50 text-purple-600' },
+                { label: getUITranslation('favorites', currentLanguage), icon: FiStar, path: '/favorites', color: 'bg-amber-50 text-amber-600' },
+                { label: getUITranslation('profile', currentLanguage), icon: FiUser, path: '/profile', color: 'bg-emerald-50 text-emerald-600' },
               ].map((item) => (
                 <GlassCard
                   key={item.label}
@@ -144,33 +110,33 @@ export default function Home() {
           <section>
             <SectionHeading
               icon={FiLayers}
-              title={t.featuredTopics}
-              subtitle={t.curatedPaths}
+              title={getUITranslation('featuredTopics', currentLanguage)}
+              subtitle={getUITranslation('curatedPaths', currentLanguage)}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeaturedCard
-                badge={t.popular}
+                badge={getUITranslation('popular', currentLanguage)}
                 badgeColor="bg-blue-100 text-blue-700"
-                title={t.physicsFundamentals}
-                desc={t.physicsFundamentalsDesc}
+                title={getUITranslation('physicsFundamentals', currentLanguage)}
+                desc={getUITranslation('physicsFundamentalsDesc', currentLanguage)}
                 onBtnClick={() => navigate('/subjects')}
-                btnText={t.startLesson}
+                btnText={getUITranslation('startLesson', currentLanguage)}
               />
               <FeaturedCard
-                badge={t.new}
+                badge={getUITranslation('new', currentLanguage)}
                 badgeColor="bg-purple-100 text-purple-700"
-                title={t.biologyIn3D}
-                desc={t.biologyIn3DDesc}
+                title={getUITranslation('biologyIn3D', currentLanguage)}
+                desc={getUITranslation('biologyIn3DDesc', currentLanguage)}
                 onBtnClick={() => navigate('/ar')}
-                btnText={t.startLesson}
+                btnText={getUITranslation('startLesson', currentLanguage)}
               />
               <FeaturedCard
-                badge={t.trending}
+                badge={getUITranslation('trending', currentLanguage)}
                 badgeColor="bg-amber-100 text-amber-700"
-                title={t.chemistryReactions}
-                desc={t.chemistryReactionsDesc}
+                title={getUITranslation('chemistryReactions', currentLanguage)}
+                desc={getUITranslation('chemistryReactionsDesc', currentLanguage)}
                 onBtnClick={() => navigate('/subjects')}
-                btnText={t.startLesson}
+                btnText={getUITranslation('startLesson', currentLanguage)}
               />
             </div>
           </section>
@@ -192,13 +158,13 @@ export default function Home() {
           </span>
           <div className="flex items-center gap-4">
             <button onClick={() => navigate('/login')} className="hidden sm:block text-slate-500 font-bold hover:text-slate-900 transition-colors">
-              Sign In
+              {getUITranslation('signIn', currentLanguage)}
             </button>
             <button
               onClick={() => navigate('/signup')}
               className="px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
             >
-              Get Started
+              {getUITranslation('getStarted', currentLanguage)}
             </button>
           </div>
         </div>
@@ -214,27 +180,26 @@ export default function Home() {
             <div className="flex-1 text-center lg:text-left space-y-8">
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-slate-200 text-indigo-600 text-sm font-bold uppercase tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
-                The Future of Education
+                {getUITranslation('futureOfEducation', currentLanguage)}
               </div>
 
               <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">
-                Explore STEM <br />
+                {getUITranslation('exploreSTEM', currentLanguage)} <br />
                 <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-purple-600">
-                  with AR Magic
+                  {getUITranslation('withARMagic', currentLanguage)}
                 </span>
               </h1>
 
               <p className="text-xl text-slate-500 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
-                Experience interactive learning through augmented reality.
-                Master complex STEM concepts in your preferred language with immersive 3D visualizations.
+                {getUITranslation('heroDesc', currentLanguage)}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <PrimaryButton onClick={() => navigate('/signup')}>
-                  Start Learning Free <FiArrowRight />
+                  {getUITranslation('startLearningFree', currentLanguage)} <FiArrowRight />
                 </PrimaryButton>
                 <SecondaryButton onClick={() => navigate('/ar')}>
-                  View 3D Demo
+                  {getUITranslation('view3DDemo', currentLanguage)}
                 </SecondaryButton>
               </div>
 
@@ -283,30 +248,30 @@ export default function Home() {
         {/* Features Grid */}
         <section className="py-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Why Choose Eduverse?</h2>
-            <p className="text-slate-500 text-lg max-w-2xl mx-auto">Immersive technology meets traditional curriculum.</p>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">{getUITranslation('whyChoose', currentLanguage)}</h2>
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">{getUITranslation('immersiveTech', currentLanguage)}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FeatureItem
               icon={FiBox}
-              title="Interactive AR"
-              desc="Explore 3D models of scientific concepts in your physical space."
+              title={getUITranslation('interactiveAR', currentLanguage)}
+              desc={getUITranslation('interactiveARDesc', currentLanguage)}
             />
             <FeatureItem
               icon={FiGlobe}
-              title="Multi-Language"
-              desc="Learn in your preferred language with seamless content translation."
+              title={getUITranslation('multiLanguage', currentLanguage)}
+              desc={getUITranslation('multiLanguageDesc', currentLanguage)}
             />
             <FeatureItem
               icon={FiBook}
-              title="Comprehensive"
-              desc="Structured lessons across Physics, Chemistry, and Biology."
+              title={getUITranslation('comprehensive', currentLanguage)}
+              desc={getUITranslation('comprehensiveDesc', currentLanguage)}
             />
             <FeatureItem
               icon={FiZap}
-              title="Self-Paced"
-              desc="Save favorites and track your learning progress over time."
+              title={getUITranslation('selfPaced', currentLanguage)}
+              desc={getUITranslation('selfPacedDesc', currentLanguage)}
             />
           </div>
         </section>
@@ -317,13 +282,13 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
               <div className="flex-1 space-y-6 text-center lg:text-left">
                 <div className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                  Mobile App
+                  {getUITranslation('mobileApp', currentLanguage)}
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-                  Take the Lab <br /> With You
+                  {getUITranslation('takeLabWithYou', currentLanguage).split(' ').reduce((acc, word, i) => i < 2 ? acc + word + ' ' : acc, '')} <br /> {getUITranslation('takeLabWithYou', currentLanguage).split(' ').slice(2).join(' ')}
                 </h2>
                 <p className="text-lg text-slate-500 max-w-md mx-auto lg:mx-0 font-medium">
-                  Experience full AR capabilities on your smartphone. Scan to download the APK directly.
+                  {getUITranslation('mobileAppDesc', currentLanguage)}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-6 pt-4 justify-center lg:justify-start">
@@ -331,9 +296,9 @@ export default function Home() {
                     <img src="/image.png" alt="QR Code" className="w-24 h-24" />
                   </div>
                   <div className="space-y-3">
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Download Android App</p>
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">{getUITranslation('downloadAndroidApp', currentLanguage)}</p>
                     <PrimaryButton onClick={() => window.open('https://q.me-qr.com/spc1s2v7', '_blank')}>
-                      Download APK <FiArrowRight className="ml-2" />
+                      {getUITranslation('downloadAPK', currentLanguage)} <FiArrowRight className="ml-2" />
                     </PrimaryButton>
                   </div>
                 </div>

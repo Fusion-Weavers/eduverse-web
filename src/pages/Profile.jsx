@@ -1,17 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   IoCheckmarkCircleOutline,
-  IoCloseCircleOutline,
-  IoHourglassOutline,
   IoRefreshOutline,
   IoWarningOutline,
-  IoPersonOutline,
   IoTimeOutline,
   IoBookOutline,
   IoHeartOutline,
   IoSettingsOutline,
   IoCloudOfflineOutline,
-  IoLogOutOutline,
   IoTrashOutline
 } from "react-icons/io5";
 import Navbar from "../components/Navbar";
@@ -24,12 +20,11 @@ import { getSubjectIcon } from "../utils/iconMap";
 import { AmbientBackground, GlassCard, StatCard, Badge } from "../components/ui/DesignSystem";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const {
     currentLanguage,
-    getLanguageDisplayName,
-    isGeminiAvailable,
-    translationError
+    getUITranslation,
+    isGeminiAvailable
   } = useLanguage();
 
   const {
@@ -39,7 +34,7 @@ export default function Profile() {
     getPendingActionsCount
   } = useFavorites();
 
-  const { subjects, topics, concepts } = useContent();
+  const { subjects = [], topics = [], concepts = [] } = useContent();
 
   // User statistics state
   const [userStats, setUserStats] = useState({
@@ -97,10 +92,33 @@ export default function Profile() {
 
   // Get organized favorites
   const favoritesBySubject = useMemo(() => {
-    return getFavoritesBySubject(subjects, topics, concepts);
+    if (!subjects || !topics || !concepts) return {};
+    try {
+      return getFavoritesBySubject(subjects, topics, concepts) || {};
+    } catch (err) {
+      console.error("Error getting favorites", err);
+      return {};
+    }
   }, [subjects, topics, concepts, getFavoritesBySubject]);
 
   const hasFavorites = Object.keys(favoritesBySubject).length > 0;
+
+  // --- SAFEGUARDS ---
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="text-slate-500 font-medium">{getUITranslation ? getUITranslation('loading', currentLanguage) : "Loading..."}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  const displayName = user.displayName || (getUITranslation ? getUITranslation('learner', currentLanguage) : "Learner");
+  const userInitial = (displayName || user.email || "?").charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -111,8 +129,8 @@ export default function Profile() {
 
         {/* Page Header */}
         <div className="mb-12">
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">Profile</h2>
-          <p className="mt-2 text-lg text-slate-500 font-medium">Manage your account settings and view your learning progress.</p>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">{getUITranslation('profile', currentLanguage)}</h2>
+          <p className="mt-2 text-lg text-slate-500 font-medium">{getUITranslation('manageAccount', currentLanguage)}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -124,16 +142,16 @@ export default function Profile() {
             <GlassCard className="p-8 text-center" hoverEffect={false}>
               <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-br from-slate-200 to-slate-100 ring-4 ring-white shadow-inner">
                 <span className="text-4xl font-bold text-slate-700">
-                  {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                  {userInitial}
                 </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900">{user.displayName || "Learner"}</h3>
+              <h3 className="text-xl font-bold text-slate-900">{displayName}</h3>
               <p className="text-sm font-medium text-slate-500">{user.email}</p>
 
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <Badge variant="primary">Student</Badge>
+                <Badge variant="primary">{getUITranslation('student', currentLanguage)}</Badge>
                 <Badge variant="default">
-                  Member since {user.metadata?.creationTime ? new Date(user.metadata.creationTime).getFullYear() : '2025'}
+                  {getUITranslation('memberSince', currentLanguage)} {user.metadata?.creationTime ? new Date(user.metadata.creationTime).getFullYear() : '2025'}
                 </Badge>
               </div>
             </GlassCard>
@@ -142,7 +160,7 @@ export default function Profile() {
             <GlassCard className="p-6" hoverEffect={false}>
               <div className="mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
                 <IoSettingsOutline className="text-slate-400" />
-                <h4 className="font-bold text-slate-900">Preferences</h4>
+                <h4 className="font-bold text-slate-900">{getUITranslation('preferences', currentLanguage)}</h4>
               </div>
 
               {/* Language */}
@@ -168,10 +186,10 @@ export default function Profile() {
 
               {/* Sync Status */}
               <div className="mb-6">
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">Cloud Sync</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">{getUITranslation('cloudSync', currentLanguage)}</label>
                 <div className={`flex items-center justify-between rounded-xl border p-3 ${syncStatus === 'synced' ? 'border-emerald-100 bg-emerald-50/50' :
-                    syncStatus === 'syncing' ? 'border-blue-100 bg-blue-50/50' :
-                      'border-amber-100 bg-amber-50/50'
+                  syncStatus === 'syncing' ? 'border-blue-100 bg-blue-50/50' :
+                    'border-amber-100 bg-amber-50/50'
                   }`}>
                   <div className="flex items-center gap-3">
                     {syncStatus === 'synced' && <IoCheckmarkCircleOutline className="text-xl text-emerald-600" />}
@@ -180,13 +198,13 @@ export default function Profile() {
 
                     <div className="flex flex-col">
                       <span className={`text-sm font-bold ${syncStatus === 'synced' ? 'text-emerald-700' :
-                          syncStatus === 'syncing' ? 'text-blue-700' :
-                            'text-amber-700'
+                        syncStatus === 'syncing' ? 'text-blue-700' :
+                          'text-amber-700'
                         }`}>
-                        {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Pending'}
+                        {syncStatus === 'synced' ? getUITranslation('synced', currentLanguage) : syncStatus === 'syncing' ? getUITranslation('syncing', currentLanguage) : getUITranslation('pending', currentLanguage)}
                       </span>
                       {syncStatus === 'pending' && (
-                        <span className="text-xs text-amber-600">{getPendingActionsCount()} actions queued</span>
+                        <span className="text-xs text-amber-600">{getPendingActionsCount()} {getUITranslation('actionsQueued', currentLanguage)}</span>
                       )}
                     </div>
                   </div>
@@ -199,7 +217,7 @@ export default function Profile() {
                   onClick={handleClearCache}
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
                 >
-                  <IoTrashOutline /> Clear Cache
+                  <IoTrashOutline /> {getUITranslation('clearCache', currentLanguage)}
                 </button>
               </div>
             </GlassCard>
@@ -213,25 +231,25 @@ export default function Profile() {
               <StatCard
                 icon={IoBookOutline}
                 value={userStats.topicsViewed}
-                label="Topics Viewed"
+                label={getUITranslation('topicsViewed', currentLanguage)}
                 colorClass="bg-blue-500"
               />
               <StatCard
                 icon={IoCheckmarkCircleOutline}
                 value={userStats.conceptsRead}
-                label="Concepts Read"
+                label={getUITranslation('conceptsRead', currentLanguage)}
                 colorClass="bg-emerald-500"
               />
               <StatCard
                 icon={IoTimeOutline}
                 value={Math.round(userStats.totalReadTime / 60)}
-                label="Minutes Read"
+                label={getUITranslation('minutesRead', currentLanguage)}
                 colorClass="bg-purple-500"
               />
               <StatCard
                 icon={IoHeartOutline}
                 value={userStats.favoriteCount}
-                label="Favorites"
+                label={getUITranslation('favorites', currentLanguage)}
                 colorClass="bg-rose-500"
               />
             </div>
@@ -239,10 +257,10 @@ export default function Profile() {
             {/* Favorites Collection */}
             <GlassCard className="p-8" hoverEffect={false}>
               <div className="mb-8 flex items-end justify-between">
-                <h3 className="text-2xl font-bold tracking-tight text-slate-900">Your Collection</h3>
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900">{getUITranslation('yourCollection', currentLanguage)}</h3>
                 {hasFavorites && (
                   <a href="/favorites" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline">
-                    View Full List
+                    {getUITranslation('viewFullList', currentLanguage)}
                   </a>
                 )}
               </div>
@@ -250,14 +268,15 @@ export default function Profile() {
               {!hasFavorites ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 py-12 text-center">
                   <IoHeartOutline className="mb-3 text-4xl text-slate-300" />
-                  <p className="text-slate-500">You haven't saved any favorites yet.</p>
+                  <p className="text-slate-500">{getUITranslation('noFavorites', currentLanguage)}</p>
                   <a href="/subjects" className="mt-4 rounded-full bg-slate-900 px-6 py-2 text-sm font-bold text-white transition-transform hover:scale-105">
-                    Explore Content
+                    {getUITranslation('exploreSubjects', currentLanguage)}
                   </a>
                 </div>
               ) : (
                 <div className="space-y-8">
                   {Object.entries(favoritesBySubject).map(([subjectId, subjectData]) => {
+                    if (!subjectData?.subject) return null;
                     const SubjectIcon = getSubjectIcon(subjectData.subject.icon);
                     return (
                       <div key={subjectId} className="border-b border-slate-100 pb-8 last:border-0 last:pb-0">
@@ -281,10 +300,10 @@ export default function Profile() {
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold uppercase tracking-wide text-indigo-600">Topic</span>
                                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${topic.difficulty === 'beginner' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                  }`}>{topic.difficulty}</span>
+                                  }`}>{topic.difficulty || 'Advanced'}</span>
                               </div>
                               <h5 className="font-bold text-slate-900 group-hover:text-indigo-700">{topic.name}</h5>
-                              <p className="text-xs text-slate-500 mt-1">{topic.conceptCount} concepts</p>
+                              <p className="text-xs text-slate-500 mt-1">{topic.conceptCount || 0} concepts</p>
                             </a>
                           ))}
 
@@ -297,10 +316,10 @@ export default function Profile() {
                             >
                               <div className="flex justify-between items-start mb-2">
                                 <span className="text-xs font-bold uppercase tracking-wide text-purple-600">Concept</span>
-                                <span className="text-[10px] text-slate-400 font-medium">{concept.estimatedReadTime} min</span>
+                                <span className="text-[10px] text-slate-400 font-medium">{concept.estimatedReadTime || 5} min</span>
                               </div>
                               <h5 className="font-bold text-slate-900 group-hover:text-purple-700">{concept.title}</h5>
-                              <p className="text-xs text-slate-500 mt-1">in {concept.topicName}</p>
+                              <p className="text-xs text-slate-500 mt-1">in {concept.topicName || 'Topic'}</p>
                             </a>
                           ))}
                         </div>

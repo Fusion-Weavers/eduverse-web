@@ -5,11 +5,13 @@ import Navbar from "../components/Navbar";
 import SearchBar from "../components/SearchBar";
 import SearchResults from "../components/SearchResults";
 import { useSearch } from "../context/SearchContext";
+import { useLanguage } from "../context/LanguageContext";
 import { AmbientBackground, GlassCard, Badge } from "../components/ui/DesignSystem";
 
 export default function Search() {
   const [searchParams] = useSearchParams();
   const { handleSearchChange, setScope, executeSearch } = useSearch();
+  const { currentLanguage, getUITranslation } = useLanguage();
   const lastQueryRef = useRef("");
   const lastScopeRef = useRef("");
 
@@ -44,11 +46,11 @@ export default function Search() {
           </div>
 
           <h1 className="mb-4 text-4xl md:text-5xl font-black tracking-tight text-slate-900">
-            Explore Knowledge
+            {getUITranslation('exploreKnowledge', currentLanguage)}
           </h1>
 
           <p className="mb-10 text-lg text-slate-500">
-            Find specific topics, concepts, or browse through our entire STEM library.
+            {getUITranslation('searchSubtitle', currentLanguage)}
           </p>
 
           {/* Search Bar Container */}
@@ -58,7 +60,7 @@ export default function Search() {
             */}
             <div className="relative z-20">
               <SearchBar
-                placeholder="Search subjects, topics, and concepts..."
+                placeholder={getUITranslation('searchPlaceholder', currentLanguage)}
                 autoFocus={true}
               />
             </div>
@@ -71,7 +73,7 @@ export default function Search() {
           {!query && (
             <div className="mt-6 flex flex-wrap justify-center gap-2 text-sm text-slate-400">
               <span className="flex items-center gap-1">
-                <IoSparklesOutline /> Try searching for:
+                <IoSparklesOutline /> {getUITranslation('trySearchingFor', currentLanguage)}
               </span>
               <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all" onClick={() => executeSearch("Physics")}>
                 Physics

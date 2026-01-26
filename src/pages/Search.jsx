@@ -56,15 +56,14 @@ export default function Search() {
             {/* Note: We wrap the SearchBar in a div to control its width and layout context 
               without modifying the SearchBar component itself if it's reused elsewhere.
             */}
-            <div className="relative z-20">
+            <div className="relative z-50">
               <SearchBar
                 placeholder="Search subjects, topics, and concepts..."
-                autoFocus={true}
+                autoFocus={false}
               />
             </div>
 
-            {/* Decorative Glow behind search bar */}
-            <div className="absolute -inset-1 rounded-full bg-linear-to-r from-indigo-500 to-purple-500 opacity-20 blur-lg transition-opacity duration-300 group-focus-within:opacity-40" />
+
           </div>
 
           {/* Quick Hints */}
@@ -73,13 +72,25 @@ export default function Search() {
               <span className="flex items-center gap-1">
                 <IoSparklesOutline /> Try searching for:
               </span>
-              <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all" onClick={() => executeSearch("Physics")}>
+              <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all"
+                onClick={() => {
+                  handleSearchChange("Physics");
+                  executeSearch("Physics");
+                }}>
                 Physics
               </span>
-              <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all" onClick={() => executeSearch("Algorithm")}>
+              <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all"
+                onClick={() => {
+                  handleSearchChange("Algorithm");
+                  executeSearch("Algorithm");
+                }}>
                 Algorithms
               </span>
-              <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all" onClick={() => executeSearch("Organic Chemistry")}>
+              <span className="cursor-pointer rounded-full bg-white/50 px-3 py-1 font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-white hover:text-indigo-600 hover:ring-indigo-200 transition-all"
+                onClick={() => {
+                  handleSearchChange("Organic Chemistry");
+                  executeSearch("Organic Chemistry");
+                }}>
                 Organic Chemistry
               </span>
             </div>
@@ -87,9 +98,11 @@ export default function Search() {
         </div>
 
         {/* Results Section */}
-        <GlassCard className="min-h-[400px] p-6 sm:p-8" hoverEffect={false}>
-          <SearchResults showHeader={true} />
-        </GlassCard>
+        <div className="relative z-0">
+          <GlassCard className="min-h-[400px] p-6 sm:p-8" hoverEffect={false}>
+            <SearchResults showHeader={true} />
+          </GlassCard>
+        </div>
 
       </main>
     </div>
